@@ -1,0 +1,53 @@
+{
+    "name": "specialistaweb/rss-news-import",
+    "type": "typo3-cms-extension",
+    "description": "Imports external RSS/Atom feeds into EXT:news via the Scheduler and SimplePie, with images, categories, keyword filters and Fluid templates.",
+    "keywords": [
+        "TYPO3",
+        "news",
+        "rss",
+        "atom",
+        "import",
+        "scheduler",
+        "simplepie"
+    ],
+    "homepage": "https://typo3.specialistaweb.it",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Giulia Tuveri",
+            "email": "gt@specialistaweb.it",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "ext-dom": "*",
+        "ext-fileinfo": "*",
+        "ext-libxml": "*",
+        "ext-xml": "*",
+        "ext-xmlreader": "*",
+        "php": "^8.2",
+        "georgringer/news": "^14.0",
+        "psr/http-client": "^1.0",
+        "simplepie/simplepie": "^1.9",
+        "typo3/cms-backend": "^14.0",
+        "typo3/cms-core": "^14.0",
+        "typo3/cms-extbase": "^14.0",
+        "typo3/cms-fluid": "^14.0",
+        "typo3/cms-scheduler": "^14.0"
+    },
+    "suggest": {
+        "ext-intl": "Migliore gestione degli IRI internazionali in SimplePie",
+        "ext-iconv": "Conversione di codifica dei feed non UTF-8 (SimplePie)"
+    },
+    "autoload": {
+        "psr-4": {
+            "SpecialistaWeb\\RssNewsImport\\": "Classes/"
+        }
+    },
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "rss_news_import"
+        }
+    }
+}

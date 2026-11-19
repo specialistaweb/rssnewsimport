@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:media="http://search.yahoo.com/mrss/">
+<channel><title>Test</title><link>https://example.com</link>
+<item>
+ <title>Primo articolo &amp; prova</title>
+ <link>https://example.com/articolo-1</link>
+ <guid isPermaLink="false">abc-1</guid>
+ <pubDate>Thu, 12 Nov 2026 10:00:00 +0100</pubDate>
+ <dc:creator>Mario Rossi</dc:creator>
+ <category>Politica</category><category>Economia</category>
+ <description><![CDATA[<p>Teaser <b>breve</b></p>]]></description>
+ <content:encoded><![CDATA[<p style="color:red" onclick="x()">Corpo <a href="/link">relativo</a></p><img src="/img/a.jpg"><script>alert(1)</script>]]></content:encoded>
+ <media:content url="https://example.com/small.jpg" medium="image" width="200"/>
+ <media:content url="https://example.com/big.jpg" medium="image" width="1200"/>
+</item>
+<item>
+ <title>Secondo</title>
+ <link>https://example.com/articolo-2</link>
+ <author>redazione@example.com (La Redazione)</author>
+ <enclosure url="https://example.com/foto.png" type="image/png" length="1"/>
+ <description>Solo testo</description>
+</item>
+</channel></rss>

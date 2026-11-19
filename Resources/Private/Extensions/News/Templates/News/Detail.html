@@ -1,0 +1,105 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+      xmlns:n="http://typo3.org/ns/GeorgRinger/News/ViewHelpers"
+      xmlns:rni="http://typo3.org/ns/SpecialistaWeb/RssNewsImport/ViewHelpers"
+      data-namespace-typo3-fluid="true">
+<f:comment>
+    Override del template Detail di EXT:news (RSS News Import).
+    Vale per tutte le news; per quelle importate da RSS aggiunge il box "Fonte" con il link all'articolo originale.
+</f:comment>
+<f:if condition="{newsItem}">
+    <f:then>
+        <n:titleTag>
+            <f:format.htmlentitiesDecode>{newsItem.title}</f:format.htmlentitiesDecode>
+        </n:titleTag>
+
+        <rni:feedInfo importSource="{newsItem.importSource}" as="feed">
+        <div class="news news-single rni-detail">
+            <article class="article articletype-{newsItem.type}{f:if(condition: feed, then: ' rni-detail--imported')}"
+                     itemscope="itemscope" itemtype="https://schema.org/Article">
+
+                <header class="rni-detail__header">
+                    <div class="rni-card__meta">
+                        <time datetime="{f:format.date(date: newsItem.datetime, format: 'c')}" itemprop="datePublished">
+                            <f:format.date format="d.m.Y H:i">{newsItem.datetime}</f:format.date>
+                        </time>
+                        <f:if condition="{newsItem.author}">
+                            <span class="rni-author" itemprop="author" itemscope="itemscope" itemtype="https://schema.org/Person">
+                                <span itemprop="name">{newsItem.author}</span>
+                            </span>
+                        </f:if>
+                        <f:for each="{newsItem.categories}" as="category">
+                            <span class="rni-category">{category.title}</span>
+                        </f:for>
+                    </div>
+                    <h1 class="rni-detail__title" itemprop="headline">{newsItem.title}</h1>
+                </header>
+
+                <f:if condition="{newsItem.teaser}">
+                    <div class="rni-detail__teaser" itemprop="description">
+                        <f:format.html>{newsItem.teaser}</f:format.html>
+                    </div>
+                </f:if>
+
+                <f:for each="{newsItem.falMedia}" as="mediaElement" iteration="mediaIterator">
+                    <f:if condition="{mediaIterator.isFirst} && {mediaElement.originalResource.type} == 2">
+                        <figure class="rni-detail__media">
+                            <f:image image="{mediaElement}"
+                                     alt="{f:if(condition: mediaElement.originalResource.alternative, then: mediaElement.originalResource.alternative, else: newsItem.title)}"
+                                     maxWidth="{f:if(condition: settings.detail.media.image.maxWidth, then: settings.detail.media.image.maxWidth, else: 1200)}"
+                                     itemprop="image" />
+                            <f:if condition="{mediaElement.originalResource.description}">
+                                <figcaption>{mediaElement.originalResource.description}</figcaption>
+                            </f:if>
+                        </figure>
+                    </f:if>
+                </f:for>
+
+                <div class="rni-detail__body" itemprop="articleBody">
+                    <f:format.html>{newsItem.bodytext}</f:format.html>
+                </div>
+
+                <f:if condition="{feed}">
+                    <aside class="rni-source">
+                        <p class="rni-source__label">
+                            <f:translate key="LLL:EXT:rss_news_import/Resources/Private/Language/locallang.xlf:frontend.sourceNotice" arguments="{0: feed.title}" />
+                        </p>
+                        <f:for each="{newsItem.relatedLinks}" as="relatedLink" iteration="linkIterator">
+                            <f:if condition="{linkIterator.isFirst}">
+                                <a href="{relatedLink.uri}" class="rni-button" target="_blank" rel="noopener noreferrer">
+                                    <f:translate key="LLL:EXT:rss_news_import/Resources/Private/Language/locallang.xlf:frontend.original" />
+                                    <f:if condition="{feed.host}">({feed.host})</f:if>
+                                </a>
+                            </f:if>
+                        </f:for>
+                    </aside>
+                </f:if>
+
+                <f:if condition="!{feed} && {newsItem.relatedLinks}">
+                    <aside class="rni-related">
+                        <h2><f:translate key="LLL:EXT:rss_news_import/Resources/Private/Language/locallang.xlf:frontend.relatedLinks" /></h2>
+                        <ul>
+                            <f:for each="{newsItem.relatedLinks}" as="relatedLink">
+                                <li><f:link.typolink parameter="{relatedLink.uri}">{f:if(condition: relatedLink.title, then: relatedLink.title, else: relatedLink.uri)}</f:link.typolink></li>
+                            </f:for>
+                        </ul>
+                    </aside>
+                </f:if>
+
+                <f:if condition="{settings.backPid}">
+                    <nav class="rni-back">
+                        <f:link.page pageUid="{settings.backPid}" class="rni-link-back">
+                            <f:translate key="LLL:EXT:rss_news_import/Resources/Private/Language/locallang.xlf:frontend.back" />
+                        </f:link.page>
+                    </nav>
+                </f:if>
+            </article>
+        </div>
+        </rni:feedInfo>
+    </f:then>
+    <f:else>
+        <p class="rni-empty">
+            <f:translate key="LLL:EXT:rss_news_import/Resources/Private/Language/locallang.xlf:frontend.notFound" />
+        </p>
+    </f:else>
+</f:if>
+</html>

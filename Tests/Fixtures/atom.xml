@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+ <title>Atom test</title>
+ <entry>
+  <title type="html">Voce Atom</title>
+  <link rel="alternate" href="https://atom.example/post"/>
+  <id>urn:uuid:1234</id>
+  <published>2026-11-10T08:30:00Z</published>
+  <author><name>Anna</name><email>anna@atom.example</email></author>
+  <category term="tech" label="Tecnologia"/>
+  <summary>Sommario</summary>
+  <content type="html">&lt;p&gt;Contenuto &lt;img src="https://atom.example/i.webp"&gt;&lt;/p&gt;</content>
+ </entry>
+</feed>

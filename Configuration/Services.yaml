@@ -1,0 +1,18 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  SpecialistaWeb\RssNewsImport\:
+    resource: '../Classes/*'
+    exclude:
+      # Oggetti valore e classi istanziate manualmente (non sono servizi)
+      - '../Classes/Domain/Dto/*'
+      - '../Classes/Http/LimitedStream.php'
+      - '../Classes/Http/HttpClientException.php'
+      - '../Classes/Http/SimplePieHttpClient.php'
+      - '../Classes/Feed/KeywordFilter.php'
+
+  SpecialistaWeb\RssNewsImport\Command\ImportFeedsCommand:
+    public: true

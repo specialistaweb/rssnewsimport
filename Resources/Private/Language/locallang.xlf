@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" datatype="plaintext" original="EXT:rss_news_import/Resources/Private/Language/locallang.xlf" product-name="rss_news_import">
+        <body>
+            <trans-unit id="frontend.source"><source>Source</source></trans-unit>
+            <trans-unit id="frontend.sourceNotice"><source>This article was originally published by %s.</source></trans-unit>
+            <trans-unit id="frontend.original"><source>Read the original article</source></trans-unit>
+            <trans-unit id="frontend.readOriginal"><source>Read the original article</source></trans-unit>
+            <trans-unit id="frontend.more"><source>Read more</source></trans-unit>
+            <trans-unit id="frontend.back"><source>Back to the list</source></trans-unit>
+            <trans-unit id="frontend.relatedLinks"><source>Related links</source></trans-unit>
+            <trans-unit id="frontend.notFound"><source>The requested news could not be found.</source></trans-unit>
+        </body>
+    </file>
+</xliff>

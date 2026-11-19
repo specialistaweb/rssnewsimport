@@ -1,0 +1,4 @@
+name: specialistaweb/rss-news-import
+label: 'RSS News Import (template Fluid per EXT:news)'
+optionalDependencies:
+  - georgringer/news

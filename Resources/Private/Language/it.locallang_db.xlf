@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" target-language="it" datatype="plaintext" original="EXT:rss_news_import/Resources/Private/Language/locallang_db.xlf" product-name="rss_news_import">
+        <body>
+            <trans-unit id="tx_rssnewsimport_feed"><source>RSS feed</source><target>Feed RSS</target></trans-unit>
+            <trans-unit id="tab.general"><source>Feed</source><target>Feed</target></trans-unit>
+            <trans-unit id="tab.import"><source>Import</source><target>Importazione</target></trans-unit>
+            <trans-unit id="tab.categories"><source>Categories</source><target>Categorie</target></trans-unit>
+            <trans-unit id="tab.status"><source>Status</source><target>Stato</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.title"><source>Name of the source</source><target>Nome della fonte</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.url"><source>Feed URL (RSS 2.0, RSS 1.0 or Atom)</source><target>URL del feed (RSS 2.0, RSS 1.0 o Atom)</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.url.description"><source>Example: https://www.example.com/feed/</source><target>Esempio: https://www.esempio.it/feed/</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.description"><source>Internal notes</source><target>Note interne</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.storage_pid"><source>Storage folder for news</source><target>Cartella di destinazione delle news</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.storage_pid.description"><source>If empty, news are stored in the same folder as this feed record.</source><target>Se vuoto, le news vengono salvate nella stessa cartella di questo record.</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.news_type"><source>News type</source><target>Tipo di news</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.news_type.0"><source>Regular news (text on this site + link to original)</source><target>News normale (testo sul sito + link all'originale)</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.news_type.2"><source>External page (link directly to the original article)</source><target>Pagina esterna (link diretto all'articolo originale)</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.import_images"><source>Download images</source><target>Scarica le immagini</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.add_related_link"><source>Add link to original article</source><target>Aggiungi link all'articolo originale</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.update_existing"><source>Update already imported news</source><target>Aggiorna le news già importate</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.import_hidden"><source>Import as hidden (editorial review)</source><target>Importa come nascoste (revisione redazionale)</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.map_categories"><source>Map feed categories to existing categories</source><target>Associa le categorie del feed a quelle esistenti</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.map_categories.description"><source>Feed categories are matched by title with existing system categories. No categories are created.</source><target>Le categorie del feed vengono confrontate per titolo con le categorie di sistema esistenti. Non vengono create nuove categorie.</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.import_limit"><source>Maximum items per run</source><target>Numero massimo di elementi per esecuzione</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.max_age_days"><source>Ignore items older than (days)</source><target>Ignora elementi più vecchi di (giorni)</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.zero_unlimited"><source>0 = no limit</source><target>0 = nessun limite</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.default_author"><source>Default author</source><target>Autore predefinito</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.categories"><source>Categories assigned to imported news</source><target>Categorie assegnate alle news importate</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.categories.description"><source>Assigned to every news imported from this feed.</source><target>Assegnate a ogni news importata da questo feed.</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.last_import"><source>Last import</source><target>Ultima importazione</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.last_status"><source>Last result</source><target>Ultimo esito</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.check_interval"><source>Check interval (minutes)</source><target>Intervallo di controllo (minuti)</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.check_interval.description"><source>The feed is contacted at most once in this interval, even if the Scheduler runs more often. After errors the wait doubles (max 24 hours).</source><target>Il feed viene contattato al massimo una volta in questo intervallo, anche se lo Scheduler gira più spesso. Dopo un errore l'attesa raddoppia (max 24 ore).</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.error_count"><source>Consecutive errors</source><target>Errori consecutivi</target></trans-unit>
+            <trans-unit id="tab.filter"><source>Filters</source><target>Filtri</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.exclude_keywords"><source>Exclude news containing one of these keywords</source><target>Escludi le news che contengono una di queste parole chiave</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.exclude_keywords.description"><source>Keywords separated by comma. A news item is not imported when its title or text contains one of them. Case-insensitive, whole words or phrases only: "calcio" does not exclude "calciomercato".</source><target>Parole chiave separate da virgola. La news non viene importata se il titolo o il testo ne contiene almeno una. Maiuscole e minuscole sono indifferenti; vale solo per parole o frasi intere: "calcio" non esclude "calciomercato".</target></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.exclude_keywords.placeholder"><source>e.g. osteoporosis, food supplements, vitamin D</source><target>es. osteoporosi, integratori, vitamina D</target></trans-unit>
+        </body>
+    </file>
+</xliff>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" datatype="plaintext" original="EXT:rss_news_import/Resources/Private/Language/locallang_db.xlf" product-name="rss_news_import">
+        <body>
+            <trans-unit id="tx_rssnewsimport_feed"><source>RSS feed</source></trans-unit>
+            <trans-unit id="tab.general"><source>Feed</source></trans-unit>
+            <trans-unit id="tab.import"><source>Import</source></trans-unit>
+            <trans-unit id="tab.categories"><source>Categories</source></trans-unit>
+            <trans-unit id="tab.status"><source>Status</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.title"><source>Name of the source</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.url"><source>Feed URL (RSS 2.0, RSS 1.0 or Atom)</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.url.description"><source>Example: https://www.example.com/feed/</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.description"><source>Internal notes</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.storage_pid"><source>Storage folder for news</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.storage_pid.description"><source>If empty, news are stored in the same folder as this feed record.</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.news_type"><source>News type</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.news_type.0"><source>Regular news (text on this site + link to original)</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.news_type.2"><source>External page (link directly to the original article)</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.import_images"><source>Download images</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.add_related_link"><source>Add link to original article</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.update_existing"><source>Update already imported news</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.import_hidden"><source>Import as hidden (editorial review)</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.map_categories"><source>Map feed categories to existing categories</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.map_categories.description"><source>Feed categories are matched by title with existing system categories. No categories are created.</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.import_limit"><source>Maximum items per run</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.max_age_days"><source>Ignore items older than (days)</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.zero_unlimited"><source>0 = no limit</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.default_author"><source>Default author</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.categories"><source>Categories assigned to imported news</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.categories.description"><source>Assigned to every news imported from this feed.</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.last_import"><source>Last import</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.last_status"><source>Last result</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.check_interval"><source>Check interval (minutes)</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.check_interval.description"><source>The feed is contacted at most once in this interval, even if the Scheduler runs more often. After errors the wait doubles (max 24 hours).</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.error_count"><source>Consecutive errors</source></trans-unit>
+            <trans-unit id="tab.filter"><source>Filters</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.exclude_keywords"><source>Exclude news containing one of these keywords</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.exclude_keywords.description"><source>Keywords separated by comma. A news item is not imported when its title or text contains one of them. Case-insensitive, whole words or phrases only: "calcio" does not exclude "calciomercato".</source></trans-unit>
+            <trans-unit id="tx_rssnewsimport_feed.exclude_keywords.placeholder"><source>e.g. osteoporosis, food supplements, vitamin D</source></trans-unit>
+        </body>
+    </file>
+</xliff>
