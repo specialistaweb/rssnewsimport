@@ -7,7 +7,7 @@ namespace SpecialistaWeb\RssNewsImport\Configuration;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 
 /**
- * Accesso tipizzato (e con limiti di sicurezza) alla configurazione dell'estensione.
+ * Typed access (with safety limits) to the extension configuration.
  */
 final class ExtensionSettings
 {
@@ -17,9 +17,14 @@ final class ExtensionSettings
     public function __construct(ExtensionConfiguration $extensionConfiguration)
     {
         try {
-            $settings = $extensionConfiguration->get('rss_news_import');
+            $settings = $extensionConfiguration->get('rssnewsimport');
         } catch (\Throwable) {
             $settings = [];
+        }
+        if (!is_array($settings) || $settings === []) {
+            // Configuration saved before 3.0.0, when the extension key was "rss_news_import"
+            $legacy = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['rss_news_import'] ?? [];
+            $settings = is_array($legacy) ? $legacy : [];
         }
         $this->settings = is_array($settings) ? $settings : [];
     }
@@ -27,7 +32,7 @@ final class ExtensionSettings
     public function getImageFolder(): string
     {
         $folder = trim((string)($this->settings['imageFolder'] ?? ''));
-        return $folder !== '' ? rtrim($folder, '/') . '/' : '1:/user_upload/rss_news_import/';
+        return $folder !== '' ? rtrim($folder, '/') . '/' : '1:/user_upload/rssnewsimport/';
     }
 
     public function getHttpTimeout(): int

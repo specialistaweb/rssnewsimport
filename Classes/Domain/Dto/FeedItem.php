@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SpecialistaWeb\RssNewsImport\Domain\Dto;
 
 /**
- * Singolo elemento normalizzato di un feed (RSS 2.0, RSS 1.0/RDF o Atom).
+ * Single normalised item of a feed (RSS 2.0, RSS 1.0/RDF or Atom).
  */
 final class FeedItem
 {
@@ -26,7 +26,7 @@ final class FeedItem
     ) {}
 
     /**
-     * Identificativo stabile usato per evitare duplicati (max 100 caratteri in tx_news.import_id).
+     * Stable identifier used to avoid duplicates (max 100 characters in tx_news.import_id).
      */
     public function getImportId(): string
     {
@@ -35,8 +35,8 @@ final class FeedItem
     }
 
     /**
-     * Impronta del contenuto: permette di aggiornare una news solo se è davvero cambiata,
-     * senza rileggere titolo/testo dal database.
+     * Content fingerprint: a news record is updated only if it really changed,
+     * without reading title/text from the database again.
      */
     public function getContentHash(): string
     {

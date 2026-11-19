@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
-    <file source-language="en" target-language="it" datatype="plaintext" original="EXT:rss_news_import/Resources/Private/Language/locallang.xlf" product-name="rss_news_import">
+    <file source-language="en" target-language="it" datatype="plaintext" original="EXT:rssnewsimport/Resources/Private/Language/locallang.xlf" product-name="rssnewsimport">
         <body>
             <trans-unit id="frontend.source"><source>Source</source><target>Fonte</target></trans-unit>
             <trans-unit id="frontend.sourceNotice"><source>This article was originally published by %s.</source><target>Questo articolo è stato pubblicato originariamente da %s.</target></trans-unit>

@@ -13,12 +13,12 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * Client PSR-18 fornito a SimplePie (SimplePie::set_http_client()).
  *
- * SimplePie decide cosa scaricare; il trasporto passa da HttpClient, quindi ogni richiesta di SimplePie:
- * - usa lo stack HTTP di TYPO3 (proxy, certificati, impostazioni $GLOBALS['TYPO3_CONF_VARS']['HTTP'])
- * - è protetta contro SSRF (anche sui redirect) e limitata in dimensione e tempo
+ * SimplePie decides what to download; the transport goes through HttpClient, so every SimplePie request:
+ * - uses the TYPO3 HTTP stack (proxy, certificates, settings $GLOBALS['TYPO3_CONF_VARS']['HTTP'])
+ * - is protected against SSRF (also on redirects) and limited in size and time
  *
- * Aggiunge inoltre il GET condizionale e il confronto dell'impronta: se il feed non è cambiato
- * la lettura si interrompe prima del parsing di SimplePie.
+ * It also adds the conditional GET and the fingerprint check: if the feed did not change
+ * reading stops before SimplePie parses it.
  */
 final class SimplePieHttpClient implements ClientInterface
 {
@@ -39,7 +39,7 @@ final class SimplePieHttpClient implements ClientInterface
     ) {}
 
     /**
-     * Prepara una nuova lettura: intestazioni condizionali e impronta note per l'URL del feed.
+     * Prepares a new read: known conditional headers and fingerprint for the feed URL.
      *
      * @param array<string, string> $conditionalHeaders
      */
@@ -73,9 +73,9 @@ final class SimplePieHttpClient implements ClientInterface
             return new Response(304);
         }
 
-        // Protezione XXE / "billion laughs": un feed non ha motivo di dichiarare entità
+        // XXE / "billion laughs" protection: a feed has no reason to declare entities
         if (stripos($response->body, '<!ENTITY') !== false) {
-            throw new HttpClientException('Il feed contiene dichiarazioni <!ENTITY> non consentite.', 1731700002);
+            throw new HttpClientException('The feed contains <!ENTITY> declarations, which are not allowed.', 1731700002);
         }
 
         if ($isFeedUrl) {
@@ -83,9 +83,9 @@ final class SimplePieHttpClient implements ClientInterface
             $this->lastModified = $response->lastModified;
             $this->bodyHash = sha1($response->body);
             if ($this->knownHash !== '' && $this->bodyHash === $this->knownHash) {
-                // Contenuto identico all'ultima importazione riuscita: niente parsing
+                // Content identical to the last successful import: no parsing
                 $this->unchanged = true;
-                throw new HttpClientException('Feed invariato', 1731700001);
+                throw new HttpClientException('Feed unchanged', 1731700001);
             }
         }
 

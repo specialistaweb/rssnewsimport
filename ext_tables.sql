@@ -21,9 +21,9 @@ CREATE TABLE tx_rssnewsimport_feed (
 );
 
 #
-# Colonna e indice aggiunti alla tabella di EXT:news:
-# - tx_rssnewsimport_hash: impronta del contenuto, per aggiornare solo le news davvero cambiate
-# - indice su import_source/import_id: la ricerca dei duplicati resta istantanea anche con molte news
+# Column and index added to the EXT:news table:
+# - tx_rssnewsimport_hash: content fingerprint, to update only news that really changed
+# - index on import_source/import_id: the duplicate lookup stays instant even with many news
 #
 CREATE TABLE tx_news_domain_model_news (
     tx_rssnewsimport_hash varchar(40) DEFAULT '' NOT NULL,

@@ -1,35 +1,35 @@
-# cat=basic/enable/10; type=string; label=Cartella FAL per le immagini importate (formato storage:/percorso/)
-imageFolder = 1:/user_upload/rss_news_import/
+# cat=basic/enable/10; type=string; label=FAL folder for imported images (format storage:/path/)
+imageFolder = 1:/user_upload/rssnewsimport/
 
-# cat=basic/enable/20; type=int+; label=Timeout HTTP totale in secondi
+# cat=basic/enable/20; type=int+; label=Total HTTP timeout in seconds
 httpTimeout = 15
 
-# cat=basic/enable/30; type=string; label=User-Agent usato per scaricare feed e immagini
+# cat=basic/enable/30; type=string; label=User agent used to download feeds and images
 userAgent = TYPO3 RSS News Import/1.1 (+https://typo3.org)
 
-# cat=basic/enable/40; type=int+; label=Lunghezza massima del teaser (caratteri, 0 = nessun limite)
+# cat=basic/enable/40; type=int+; label=Maximum teaser length (characters, 0 = no limit)
 teaserLength = 300
 
-# cat=basic/enable/50; type=string; label=Tag HTML consentiti nel testo (bodytext)
+# cat=basic/enable/50; type=string; label=HTML tags allowed in the text (bodytext)
 allowedTags = <p><br><a><strong><b><em><i><u><ul><ol><li><blockquote><h2><h3><h4><h5><h6><figure><figcaption><img><table><thead><tbody><tr><th><td><code><pre>
 
-# cat=limits/enable/10; type=int+; label=Dimensione massima di un feed (KB)
+# cat=limits/enable/10; type=int+; label=Maximum size of a feed (KB)
 maxFeedSizeKb = 5120
 
-# cat=limits/enable/20; type=int+; label=Numero massimo di elementi letti da un feed (protezione da feed enormi)
+# cat=limits/enable/20; type=int+; label=Maximum number of items read from a feed (protection against huge feeds)
 maxItemsPerFeed = 200
 
-# cat=limits/enable/30; type=int+; label=Dimensione massima di un'immagine (KB)
+# cat=limits/enable/30; type=int+; label=Maximum size of an image (KB)
 maxImageSizeKb = 5120
 
-# cat=limits/enable/40; type=int+; label=Risoluzione massima di un'immagine (megapixel, protegge l'elaborazione immagini)
+# cat=limits/enable/40; type=int+; label=Maximum resolution of an image (megapixels, protects image processing)
 maxImageMegapixels = 40
 
-# cat=limits/enable/50; type=int+; label=Numero massimo di immagini scaricate per esecuzione (tutti i feed)
+# cat=limits/enable/50; type=int+; label=Maximum number of images downloaded per run (all feeds)
 maxImagesPerRun = 50
 
-# cat=limits/enable/60; type=int+; label=Lunghezza massima del testo HTML di una news (KB)
+# cat=limits/enable/60; type=int+; label=Maximum length of the HTML text of a news record (KB)
 maxBodySizeKb = 200
 
-# cat=security/enable/10; type=boolean; label=Consenti host in rete privata/locale (intranet). Disattivato = protezione SSRF attiva
+# cat=security/enable/10; type=boolean; label=Allow hosts in private/local networks (intranet). Off = SSRF protection active
 allowPrivateHosts = 0

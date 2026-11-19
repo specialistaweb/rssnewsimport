@@ -18,17 +18,17 @@ use TYPO3\CMS\Core\Locking\LockFactory;
 use TYPO3\CMS\Core\Locking\LockingStrategyInterface;
 
 /**
- * Importa i feed RSS/Atom configurati in EXT:news.
+ * Imports the configured RSS/Atom feeds into EXT:news.
  *
  * CLI:        vendor/bin/typo3 rssnewsimport:import [--feed=1,2] [--force] [--dry-run]
  * Scheduler:  task "Execute console commands" → rssnewsimport:import
  *
- * Lo Scheduler può girare spesso (es. ogni 10 minuti): ogni feed viene contattato solo quando
- * è trascorso il suo "intervallo di controllo".
+ * The Scheduler may run often (e.g. every 10 minutes): every feed is contacted only when
+ * its "check interval" has passed.
  */
 #[AsCommand(
     name: 'rssnewsimport:import',
-    description: 'Importa i feed RSS/Atom configurati nelle news di EXT:news.'
+    description: 'Imports the configured RSS/Atom feeds into EXT:news.'
 )]
 final class ImportFeedsCommand extends Command
 {
@@ -44,13 +44,13 @@ final class ImportFeedsCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addOption('feed', 'f', InputOption::VALUE_REQUIRED, 'Uid dei feed da importare, separati da virgola (default: tutti i feed attivi)')
-            ->addOption('force', null, InputOption::VALUE_NONE, 'Ignora intervallo, backoff e cache HTTP (scarica e rielabora comunque)')
-            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Simula l\'importazione senza scrivere nel database')
+            ->addOption('feed', 'f', InputOption::VALUE_REQUIRED, 'Uids of the feeds to import, comma separated (default: all active feeds)')
+            ->addOption('force', null, InputOption::VALUE_NONE, 'Ignore interval, backoff and HTTP cache (download and process anyway)')
+            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Simulate the import without writing to the database')
             ->setHelp(
-                "Scarica i feed configurati come record \"Feed RSS\" e crea/aggiorna le news di EXT:news.\n" .
-                "Ogni feed viene contattato solo allo scadere del suo intervallo; dopo errori consecutivi l'attesa raddoppia (max 24h).\n" .
-                "Gli elementi già importati non vengono duplicati; le news cancellate dalla redazione non vengono re-importate."
+                "Downloads the feeds configured as \"RSS feed\" records and creates/updates EXT:news records.\n" .
+                "Every feed is contacted only when its interval has passed; after consecutive errors the waiting time doubles (max 24h).\n" .
+                "Items already imported are not duplicated; news deleted by the editors are not imported again."
             );
     }
 
@@ -59,7 +59,7 @@ final class ImportFeedsCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         $lock = $this->lockFactory->createLocker(
-            'rss_news_import',
+            'rssnewsimport',
             LockingStrategyInterface::LOCK_CAPABILITY_EXCLUSIVE | LockingStrategyInterface::LOCK_CAPABILITY_NOBLOCK
         );
         try {
@@ -68,7 +68,7 @@ final class ImportFeedsCommand extends Command
             $acquired = false;
         }
         if (!$acquired) {
-            $io->note('Un\'altra importazione è già in corso: esecuzione saltata.');
+            $io->note('Another import is already running: run skipped.');
             return Command::SUCCESS;
         }
 
@@ -83,16 +83,16 @@ final class ImportFeedsCommand extends Command
                 fn(array $feed): bool => $force || $this->feedImporter->isDue($feed, $now)
             );
             if ($feeds === []) {
-                $io->writeln('Nessun feed da controllare in questo momento.', OutputInterface::VERBOSITY_VERBOSE);
+                $io->writeln('No feed to check at the moment.', OutputInterface::VERBOSITY_VERBOSE);
                 return Command::SUCCESS;
             }
 
-            // Utente backend _cli_ necessario per DataHandler (inizializzato solo se serve)
+            // Backend user _cli_ needed by the DataHandler (initialised only when needed)
             Bootstrap::initializeBackendAuthentication();
             $GLOBALS['LANG'] ??= $this->languageServiceFactory->createFromUserPreferences($GLOBALS['BE_USER']);
 
             if ($dryRun) {
-                $io->note('Modalità simulazione: nessuna modifica al database.');
+                $io->note('Dry run: no changes to the database.');
             }
 
             $rows = [];
@@ -112,12 +112,12 @@ final class ImportFeedsCommand extends Command
             $io->table(['Uid', 'Feed', 'Esito', 'Creati', 'Aggiornati', 'Saltati', 'Esclusi', 'Immagini'], $rows);
 
             if ($failed > 0) {
-                $io->warning($failed . ' feed non raggiungibili o non validi: verranno ritentati con attesa crescente.');
-                // Errori di siti esterni non sono errori del sistema: non si fa fallire il task dello Scheduler
-                // ogni volta, a meno che tutti i feed siano falliti.
+                $io->warning($failed . ' feed(s) unreachable or invalid: they will be retried with increasing waiting time.');
+                // Errors of external sites are not system errors: the Scheduler task does not fail
+                // every time, unless all feeds failed.
                 return $failed === count($feeds) ? Command::FAILURE : Command::SUCCESS;
             }
-            $io->success('Importazione completata.');
+            $io->success('Import completed.');
             return Command::SUCCESS;
         } finally {
             $lock->release();

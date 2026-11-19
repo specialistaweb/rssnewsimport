@@ -10,11 +10,11 @@ use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractViewHelper;
 
 /**
- * Restituisce titolo e URL del feed da cui proviene una news importata,
- * oppure null se la news non è stata importata da questa estensione.
+ * Returns title and URL of the feed an imported news record comes from,
+ * or null if the news record was not imported by this extension.
  *
- * Nessuna query per le news non importate; al massimo una query per feed per richiesta
- * (cache runtime), e l'output finisce comunque nella cache di pagina di TYPO3.
+ * No query for news that were not imported; at most one query per feed and request
+ * (runtime cache), and the output ends up in the TYPO3 page cache anyway.
  *
  * <rni:feedInfo importSource="{newsItem.importSource}" as="feed">
  *     <f:if condition="{feed}">Fonte: {feed.title}</f:if>
@@ -35,8 +35,8 @@ final class FeedInfoViewHelper extends AbstractViewHelper
 
     public function initializeArguments(): void
     {
-        $this->registerArgument('importSource', 'string', 'Valore di import_source della news', false, '');
-        $this->registerArgument('as', 'string', 'Nome della variabile nel contenuto del tag', false, 'feed');
+        $this->registerArgument('importSource', 'string', 'Value of import_source of the news record', false, '');
+        $this->registerArgument('as', 'string', 'Name of the variable available inside the tag', false, 'feed');
     }
 
     public function render(): mixed
@@ -61,7 +61,7 @@ final class FeedInfoViewHelper extends AbstractViewHelper
         if ($uid <= 0) {
             return null;
         }
-        $cacheId = 'rss_news_import_feed_' . $uid;
+        $cacheId = 'rssnewsimport_feed_' . $uid;
         if ($this->runtimeCache->has($cacheId)) {
             return $this->runtimeCache->get($cacheId) ?: null;
         }

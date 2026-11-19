@@ -17,15 +17,15 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\HtmlSanitizer\Sanitizer;
 
 /**
- * Importa un feed in tx_news_domain_model_news tramite DataHandler.
- * Lettura e parsing del feed: SimplePie (vedi FeedReader).
+ * Imports a feed into tx_news_domain_model_news with the DataHandler.
+ * Reading and parsing of the feed: SimplePie (see FeedReader).
  *
- * Ottimizzazioni:
- * - intervallo minimo per feed + backoff esponenziale sugli errori (meno richieste ai siti esterni)
- * - GET condizionale (ETag/Last-Modified) e confronto impronta del contenuto: feed invariato = nessun parsing, nessuna query
- * - una query per capire quali elementi esistono già; update solo se il contenuto è cambiato (impronta)
- * - inserimenti raggruppati in un DataHandler per blocco, senza sys_log e senza rilettura dei record
- * - pulizia HTML e download immagini solo per gli elementi nuovi, con tetto di immagini per esecuzione
+ * Optimisations:
+ * - minimum interval per feed + exponential backoff on errors (fewer requests to external sites)
+ * - conditional GET (ETag/Last-Modified) and content fingerprint: unchanged feed = no parsing, no query
+ * - one query to find out which items already exist; update only if the content changed (fingerprint)
+ * - inserts grouped in one DataHandler per batch, without sys_log and without reading the records back
+ * - HTML cleaning and image downloads only for new items, with a cap on images per run
  */
 final class FeedImporter
 {
@@ -46,8 +46,8 @@ final class FeedImporter
     ) {}
 
     /**
-     * Il feed va controllato ora? Rispetta l'intervallo del feed e, dopo errori consecutivi,
-     * raddoppia l'attesa (max 24 ore) per non martellare un sito non raggiungibile.
+     * Is the feed due now? Honours the feed interval and, after consecutive errors,
+     * doubles the waiting time (max 24 hours) so an unreachable site is not hammered.
      *
      * @param array<string, mixed> $feed
      */
@@ -56,12 +56,12 @@ final class FeedImporter
         $interval = max(5, (int)$feed['check_interval']) * 60;
         $errors = min((int)$feed['error_count'], 8);
         $wait = $errors > 0 ? min($interval * (2 ** $errors), max($interval, self::MAX_BACKOFF_SECONDS)) : $interval;
-        // Tolleranza di 60 s per le piccole variazioni di avvio dello Scheduler
+        // 60 s tolerance for small variations in the Scheduler start time
         return (int)$feed['last_import'] + $wait - 60 <= $now;
     }
 
     /**
-     * @param array<string, mixed> $feed riga di tx_rssnewsimport_feed
+     * @param array<string, mixed> $feed row of tx_rssnewsimport_feed
      */
     public function import(array $feed, bool $dryRun = false, bool $force = false): ImportResult
     {
@@ -99,7 +99,7 @@ final class FeedImporter
             $state['lastModified'] = $read->lastModified;
         }
         if ($read->notModified) {
-            // HTTP 304 oppure contenuto identico all'ultima importazione riuscita: nessun parsing, nessuna query
+            // HTTP 304 or content identical to the last successful import: no parsing, no query
             $result->notModified = true;
             $this->finish($result, $feed, $state, $dryRun);
             return $result;
@@ -109,13 +109,13 @@ final class FeedImporter
         try {
             $this->processItems($this->filterItems($read->items, $feed, $keywordFilter, $result), $feed, $result, $dryRun);
         } catch (\Throwable $e) {
-            // Errore imprevisto (es. database): il feed verrà ritentato
-            $result->addError('Errore di elaborazione: ' . $e->getMessage());
+            // Unexpected error (e.g. database): the feed will be retried
+            $result->addError('Processing error: ' . $e->getMessage());
             $this->logger->error('Feed {uid}: {message}', ['uid' => $feedUid, 'message' => $e->getMessage(), 'exception' => $e]);
         }
         unset($read);
 
-        // L'impronta si salva solo se tutto è andato bene: in caso di avvisi il feed viene rielaborato
+        // The fingerprint is saved only if everything went well: with warnings the feed is processed again
         if (!$result->hasErrors() && $contentHash !== '') {
             $state['hash'] = $contentHash;
             $state['filter'] = $keywordFilter->getFingerprint();
@@ -163,7 +163,7 @@ final class FeedImporter
         if ($new !== []) {
             $pid = (int)$feed['storage_pid'] > 0 ? (int)$feed['storage_pid'] : (int)$feed['pid'];
             $fixedCategories = $this->feedRepository->findCategoryUids((int)$feed['uid']);
-            // Dal più vecchio al più recente: l'ordine di creazione segue quello di pubblicazione
+            // Oldest first: the creation order follows the publication order
             foreach (array_chunk(array_reverse($new), self::BATCH_SIZE) as $chunk) {
                 $this->createNews($chunk, $feed, $pid, $importSource, $fixedCategories, $result);
             }
@@ -191,7 +191,7 @@ final class FeedImporter
             $fields = $this->buildNewsFields($item, $feed);
             $fields['pid'] = $pid;
             $fields['hidden'] = (int)(bool)$feed['import_hidden'];
-            // Slug vuoto: DataHandler lo genera secondo la configurazione TCA di EXT:news
+            // Empty slug: the DataHandler generates it from the TCA configuration of EXT:news
             $fields['path_segment'] = '';
 
             $categories = $fixedCategories;
@@ -233,7 +233,7 @@ final class FeedImporter
             $map[$newsId] = $item;
         }
 
-        // Il record news precede i record figli che vi fanno riferimento
+        // The news record comes before the child records referencing it
         $data = [self::NEWS_TABLE => $news];
         if ($links !== []) {
             $data[self::LINK_TABLE] = $links;
@@ -251,7 +251,7 @@ final class FeedImporter
                 $marks[$uid] = ['importId' => $item->getImportId(), 'hash' => $item->getContentHash()];
                 $result->created++;
             } else {
-                $result->addError('News non creata: "' . mb_substr($item->title, 0, 80) . '"');
+                $result->addError('News record not created: "' . mb_substr($item->title, 0, 80) . '"');
             }
         }
         if ($dataHandler->errorLog !== []) {
@@ -261,7 +261,7 @@ final class FeedImporter
     }
 
     /**
-     * Aggiorna solo i testi (non immagini, categorie o visibilità decise dalla redazione).
+     * Updates only the texts (not images, categories or visibility set by the editors).
      *
      * @param array<int, FeedItem> $items uid news → elemento
      * @param array<string, mixed> $feed
@@ -279,7 +279,7 @@ final class FeedImporter
         $dataHandler = $this->process($data);
         if ($dataHandler->errorLog !== []) {
             $result->addError('DataHandler: ' . implode('; ', array_slice($dataHandler->errorLog, 0, 3)));
-            return; // impronte non aggiornate: verrà ritentato
+            return; // fingerprints not updated: will be retried
         }
         $this->feedRepository->markImported($importSource, $marks);
         $result->updated += count($items);
@@ -288,7 +288,7 @@ final class FeedImporter
     private function importImage(FeedItem $item, ImportResult $result): int
     {
         if ($this->imagesThisRun >= $this->settings->getMaxImagesPerRun()) {
-            return 0; // tetto raggiunto: la news viene comunque creata, senza immagine
+            return 0; // cap reached: the news record is still created, without image
         }
         $url = $this->absoluteUrl($item->imageUrl, $item->link);
         if (!preg_match('#^https?://#i', $url)) {
@@ -300,8 +300,8 @@ final class FeedImporter
             $result->images++;
             return $file->getUid();
         } catch (\Throwable $e) {
-            // Un'immagine non scaricabile non blocca la news (e non fa ritentare l'intero feed)
-            $this->logger->notice('Immagine non importata {url}: {message}', ['url' => $url, 'message' => $e->getMessage()]);
+            // An image that cannot be downloaded does not block the news record (and does not retry the whole feed)
+            $this->logger->notice('Image not imported {url}: {message}', ['url' => $url, 'message' => $e->getMessage()]);
             return 0;
         }
     }
@@ -328,7 +328,7 @@ final class FeedImporter
                 $result->excluded++;
                 continue;
             }
-            // Elimina doppioni all'interno dello stesso feed
+            // Remove duplicates within the same feed
             $unique[$item->getImportId()] ??= $item;
         }
         $items = array_values($unique);
@@ -378,7 +378,7 @@ final class FeedImporter
         if (trim($html) === '') {
             return '';
         }
-        // Tetto di dimensione prima delle regex: tempi e memoria prevedibili
+        // Size cap before the regular expressions: predictable time and memory
         $max = $this->settings->getMaxBodySizeBytes();
         if (strlen($html) > $max) {
             $html = mb_strcut($html, 0, $max, 'UTF-8');
@@ -393,12 +393,12 @@ final class FeedImporter
                 . $m[2],
             $html
         );
-        // Immagini senza un indirizzo http(s) valido (es. schemi neutralizzati sopra): eliminate
+        // Images without a valid http(s) address (e.g. schemes neutralised above): removed
         $html = (string)preg_replace('/<img\b(?![^>]*\ssrc=["\']https?:)[^>]*>/i', '', $html);
         $html = (string)preg_replace('/<a\s(?![^>]*\btarget=)/i', '<a target="_blank" rel="noopener noreferrer nofollow" ', $html);
         $html = (string)preg_replace('/<img\s(?![^>]*\bloading=)/i', '<img loading="lazy" ', $html);
 
-        // Sanitizer del core (allowlist di tag/attributi/protocolli): elimina javascript:, data:, ecc.
+        // Core sanitizer (allowlist of tags/attributes/protocols): removes javascript:, data:, etc.
         $this->sanitizer ??= GeneralUtility::makeInstance(DefaultSanitizerBuilder::class)->build();
         $html = $this->sanitizer->sanitize($html);
 
@@ -413,9 +413,9 @@ final class FeedImporter
     }
 
     /**
-     * Rimuove script, stili, iframe ecc. insieme al loro contenuto (strip_tags ne lascerebbe il testo).
-     * Scansione lineare con stripos: nessuna regex con backtracking, tempi prevedibili anche
-     * con HTML malformato (tag mai chiusi).
+     * Removes scripts, styles, iframes etc. together with their content (strip_tags would keep the text).
+     * Linear scan with stripos: no backtracking regular expression, predictable time even
+     * with malformed HTML (tags never closed).
      */
     private static function removeBlocks(string $html): string
     {
@@ -425,7 +425,7 @@ final class FeedImporter
             while (($start = stripos($html, '<' . $tag, $offset)) !== false) {
                 $next = $html[$start + strlen($tag) + 1] ?? '';
                 if ($next !== '' && !ctype_space($next) && $next !== '>' && $next !== '/') {
-                    // Es. "<scripture": non è il tag cercato
+                    // E.g. "<scripture": not the tag we are looking for
                     $out .= substr($html, $offset, $start - $offset + 1);
                     $offset = $start + 1;
                     continue;
@@ -433,7 +433,7 @@ final class FeedImporter
                 $out .= substr($html, $offset, $start - $offset);
                 $end = stripos($html, '</' . $tag, $start);
                 if ($end === false) {
-                    $offset = strlen($html); // tag mai chiuso: si scarta il resto
+                    $offset = strlen($html); // tag never closed: discard the rest
                     break;
                 }
                 $close = strpos($html, '>', $end);
@@ -461,7 +461,7 @@ final class FeedImporter
             return 'https:' . $url;
         }
         if (preg_match('#^[a-z][a-z0-9+.-]*:#i', $url)) {
-            return '#'; // altri schemi (javascript:, data:, ...) neutralizzati
+            return '#'; // other schemes (javascript:, data:, ...) neutralised
         }
         $parts = parse_url($base);
         if (!isset($parts['scheme'], $parts['host'])) {
@@ -480,7 +480,7 @@ final class FeedImporter
     private function process(array $data): DataHandler
     {
         $dataHandler = GeneralUtility::makeInstance(DataHandler::class);
-        // Niente voci in sys_log per ogni news importata e niente rilettura dei record appena scritti
+        // No sys_log entry for every imported news record and no reading back of the records just written
         $dataHandler->enableLogging = false;
         $dataHandler->checkStoredRecords = false;
         $dataHandler->start($data, []);
@@ -499,7 +499,7 @@ final class FeedImporter
     {
         $result->failed = true;
         $result->addError($e->getMessage());
-        $this->logger->warning('Feed {uid} non importato: {message}', ['uid' => $result->feedUid, 'message' => $e->getMessage()]);
+        $this->logger->warning('Feed {uid} not imported: {message}', ['uid' => $result->feedUid, 'message' => $e->getMessage()]);
         $this->finish($result, $feed, $state, $dryRun);
         return $result;
     }

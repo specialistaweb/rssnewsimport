@@ -2,7 +2,7 @@
 
 defined('TYPO3') or die();
 
-$ll = 'LLL:EXT:rss_news_import/Resources/Private/Language/locallang_db.xlf:';
+$ll = 'LLL:EXT:rssnewsimport/Resources/Private/Language/locallang_db.xlf:';
 
 return [
     'ctrl' => [
@@ -17,7 +17,6 @@ return [
         'enablecolumns' => [
             'disabled' => 'hidden',
         ],
-        'searchFields' => 'title,url,description',
         'typeicon_classes' => [
             'default' => 'rss-news-import-feed',
         ],

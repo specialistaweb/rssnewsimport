@@ -15,21 +15,21 @@ use SimplePie\Item;
 use SimplePie\SimplePie;
 
 /**
- * Legge un feed con SimplePie (https://simplepie.org) e lo converte in oggetti FeedItem.
+ * Reads a feed with SimplePie (https://simplepie.org) and converts it into FeedItem objects.
  *
- * SimplePie si occupa di: richiesta del feed, rilevamento del formato (RSS 0.9x/1.0/2.0, Atom 0.3/1.0,
- * Media RSS, iTunes, Dublin Core), conversione di codifica, date, autori, categorie, allegati,
- * risoluzione degli URL relativi e prima sanitizzazione dell'HTML.
+ * SimplePie takes care of: requesting the feed, detecting the format (RSS 0.9x/1.0/2.0, Atom 0.3/1.0,
+ * Media RSS, iTunes, Dublin Core), encoding conversion, dates, authors, categories, enclosures,
+ * resolving relative URLs and a first sanitisation of the HTML.
  *
- * Il trasporto è il client PSR-18 SimplePieHttpClient (stack HTTP di TYPO3 + protezioni).
- * Scelte di sicurezza:
- * - cache di SimplePie disattivata: lo stato (ETag, Last-Modified, impronta) è nel record del feed
- * - autodiscovery disattivato: un link "file://" in una pagina HTML verrebbe letto da SimplePie
- *   dal disco locale; inoltre ogni tentativo costerebbe richieste HTTP in più
+ * The transport is the PSR-18 client SimplePieHttpClient (TYPO3 HTTP stack + protections).
+ * Security choices:
+ * - SimplePie cache disabled: the state (ETag, Last-Modified, fingerprint) is stored in the feed record
+ * - autodiscovery disabled: a "file://" link in an HTML page would be read by SimplePie
+ *   from the local disk; besides, every attempt would cost extra HTTP requests
  */
 final class FeedReader
 {
-    /** Tag rimossi da SimplePie insieme al contenuto (oltre ai suoi predefiniti) */
+    /** Tags removed by SimplePie together with their content (in addition to its defaults) */
     private const STRIP_TAGS = [
         'base', 'blink', 'body', 'doctype', 'embed', 'font', 'form', 'frame', 'frameset', 'html', 'iframe',
         'input', 'marquee', 'meta', 'noscript', 'object', 'param', 'script', 'style', 'svg', 'math',
@@ -54,13 +54,13 @@ final class FeedReader
 
     /**
      * @param array<string, string> $conditionalHeaders If-None-Match / If-Modified-Since
-     * @param string $knownHash impronta del contenuto dell'ultima importazione riuscita ('' = sempre elaborare)
+     * @param string $knownHash content fingerprint of the last successful import ('' = always process)
      * @throws \RuntimeException
      */
     public function read(string $url, array $conditionalHeaders = [], string $knownHash = ''): FeedReadResult
     {
-        // Validazione prima di passare l'URL a SimplePie: SimplePie leggerebbe un percorso locale
-        // (es. "/etc/passwd") direttamente dal disco senza passare dal client HTTP
+        // Validate before handing the URL to SimplePie: SimplePie would read a local path
+        // (e.g. "/etc/passwd") directly from disk without going through the HTTP client
         $this->urlGuard->check($url);
 
         $client = $this->getHttpClient();
@@ -68,10 +68,10 @@ final class FeedReader
 
         $pie = $this->createSimplePie($url);
         $warnings = [];
-        // SimplePie scrive alcuni avvisi direttamente con error_log() se error_reporting li include
+        // SimplePie writes some warnings directly with error_log() if error_reporting includes them
         $previousReporting = error_reporting(error_reporting() & ~(E_NOTICE | E_USER_NOTICE | E_WARNING | E_USER_WARNING | E_DEPRECATED | E_USER_DEPRECATED));
         set_error_handler(static function (int $level, string $message) use (&$warnings): bool {
-            // Avvisi e deprecazioni di SimplePie non devono interrompere l'importazione
+            // SimplePie warnings and deprecations must not stop the import
             $warnings[] = $message;
             return true;
         }, E_WARNING | E_NOTICE | E_USER_WARNING | E_USER_NOTICE | E_DEPRECATED | E_USER_DEPRECATED);
@@ -90,7 +90,7 @@ final class FeedReader
             if (!$ok || $pie->error()) {
                 $error = $pie->error();
                 $error = is_array($error) ? implode('; ', $error) : (string)$error;
-                throw new \RuntimeException($error !== '' ? $this->shorten($error) : 'Feed non leggibile.', 1731700010);
+                throw new \RuntimeException($error !== '' ? $this->shorten($error) : 'Feed not readable.', 1731700010);
             }
 
             $items = [];
@@ -169,8 +169,8 @@ final class FeedReader
     }
 
     /**
-     * Immagine: allegato immagine più largo (enclosure / media:content), poi media:thumbnail,
-     * poi le miniature degli allegati, infine il primo <img> del testo.
+     * Image: widest image enclosure (enclosure / media:content), then media:thumbnail,
+     * then the thumbnails of the enclosures, finally the first <img> of the text.
      */
     private function findImage(Item $item, string $html): string
     {
@@ -212,7 +212,7 @@ final class FeedReader
     }
 
     /**
-     * RSS 2.0 <author> è spesso "email (Nome)": SimplePie lo restituisce intero come email.
+     * RSS 2.0 <author> is often "email (Name)": SimplePie returns it whole as email.
      *
      * @return array{0: string, 1: string}
      */
@@ -233,7 +233,7 @@ final class FeedReader
     }
 
     /**
-     * Solo URL http(s) assoluti: blocca "javascript:", "data:" e simili.
+     * Absolute http(s) URLs only: blocks "javascript:", "data:" and the like.
      */
     private function httpUrl(string $url): string
     {
@@ -249,7 +249,7 @@ final class FeedReader
     }
 
     /**
-     * SimplePie restituisce i testi con entità HTML: si riportano a testo semplice.
+     * SimplePie returns texts with HTML entities: they are turned back into plain text.
      */
     private function text(string $value): string
     {

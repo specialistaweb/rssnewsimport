@@ -14,14 +14,14 @@ use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
- * Scarica un'immagine remota e la registra in FAL.
+ * Downloads a remote image and registers it in FAL.
  *
- * - nome file derivato dall'URL: la stessa immagine non viene mai riscaricata
- *   (verifica con UNA query indicizzata su sys_file.identifier_hash, senza accessi al filesystem)
- * - download in streaming su file temporaneo, con limite di byte
- * - verifica del contenuto reale (finfo + getimagesize) e limite di megapixel
- *   (protegge GraphicsMagick/ImageMagick da "decompression bomb")
- * - SVG esclusi (possono contenere script)
+ * - file name derived from the URL: the same image is never downloaded twice
+ *   (checked with ONE indexed query on sys_file.identifier_hash, without file system access)
+ * - streamed download to a temporary file, with a byte limit
+ * - check of the real content (finfo + getimagesize) and megapixel limit
+ *   (protects GraphicsMagick/ImageMagick from "decompression bombs")
+ * - SVG excluded (they may contain scripts)
  */
 final class ImageImporter
 {
@@ -35,7 +35,7 @@ final class ImageImporter
     ];
 
     private ?Folder $folder = null;
-    /** @var array<string, File> cache per l'esecuzione corrente */
+    /** @var array<string, File> cache for the current run */
     private array $runtimeCache = [];
 
     public function __construct(
@@ -61,7 +61,7 @@ final class ImageImporter
             return $this->runtimeCache[$url] = $existing;
         }
 
-        $tempFile = GeneralUtility::tempnam('rss_news_import_');
+        $tempFile = GeneralUtility::tempnam('rssnewsimport_');
         try {
             $this->httpClient->get(
                 $url,
@@ -75,14 +75,14 @@ final class ImageImporter
             $mime = (string)(new \finfo(FILEINFO_MIME_TYPE))->file($tempFile);
             $extension = self::MIME_EXTENSIONS[$mime] ?? null;
             if ($extension === null) {
-                throw new \RuntimeException('Formato immagine non supportato (' . $mime . ').', 1731500201);
+                throw new \RuntimeException('Unsupported image format (' . $mime . ').', 1731500201);
             }
             $size = @getimagesize($tempFile);
             if ($size === false || $size[0] < 1 || $size[1] < 1) {
-                throw new \RuntimeException('File immagine non valido.', 1731500204);
+                throw new \RuntimeException('Invalid image file.', 1731500204);
             }
             if ($size[0] * $size[1] > $this->settings->getMaxImagePixels()) {
-                throw new \RuntimeException('Immagine troppo grande (' . $size[0] . 'x' . $size[1] . ' px).', 1731500205);
+                throw new \RuntimeException('Image too large (' . $size[0] . 'x' . $size[1] . ' px).', 1731500205);
             }
 
             $file = $folder->addFile($tempFile, $baseName . '.' . $extension, DuplicationBehavior::REPLACE);
@@ -92,7 +92,7 @@ final class ImageImporter
             }
         }
         if (!$file instanceof File) {
-            throw new \RuntimeException('Impossibile aggiungere il file a FAL.', 1731500203);
+            throw new \RuntimeException('Unable to add the file to FAL.', 1731500203);
         }
         return $this->runtimeCache[$url] = $file;
     }
@@ -138,7 +138,7 @@ final class ImageImporter
             $parent = $storage->getRootLevelFolder(false);
             foreach (array_filter(explode('/', trim($path, '/'))) as $segment) {
                 if ($segment === '..' || $segment === '.') {
-                    throw new \RuntimeException('Percorso cartella immagini non valido.', 1731500206);
+                    throw new \RuntimeException('Invalid image folder path.', 1731500206);
                 }
                 $parent = $parent->hasFolder($segment) ? $parent->getSubfolder($segment) : $parent->createFolder($segment);
             }

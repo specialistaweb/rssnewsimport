@@ -3,8 +3,8 @@
       xmlns:rni="http://typo3.org/ns/SpecialistaWeb/RssNewsImport/ViewHelpers"
       data-namespace-typo3-fluid="true">
 <f:comment>
-    Override del template Detail di EXT:news (RSS News Import).
-    Vale per tutte le news; per quelle importate da RSS aggiunge il box "Fonte" con il link all'articolo originale.
+    Override of the EXT:news Detail template (RSS News Import).
+    Applies to all news; for news imported from RSS it adds the "Source" box with the link to the original article.
 </f:comment>
 <f:if condition="{newsItem}">
     <f:then>
@@ -61,12 +61,12 @@
                 <f:if condition="{feed}">
                     <aside class="rni-source">
                         <p class="rni-source__label">
-                            <f:translate key="LLL:EXT:rss_news_import/Resources/Private/Language/locallang.xlf:frontend.sourceNotice" arguments="{0: feed.title}" />
+                            <f:translate key="LLL:EXT:rssnewsimport/Resources/Private/Language/locallang.xlf:frontend.sourceNotice" arguments="{0: feed.title}" />
                         </p>
                         <f:for each="{newsItem.relatedLinks}" as="relatedLink" iteration="linkIterator">
                             <f:if condition="{linkIterator.isFirst}">
                                 <a href="{relatedLink.uri}" class="rni-button" target="_blank" rel="noopener noreferrer">
-                                    <f:translate key="LLL:EXT:rss_news_import/Resources/Private/Language/locallang.xlf:frontend.original" />
+                                    <f:translate key="LLL:EXT:rssnewsimport/Resources/Private/Language/locallang.xlf:frontend.original" />
                                     <f:if condition="{feed.host}">({feed.host})</f:if>
                                 </a>
                             </f:if>
@@ -76,7 +76,7 @@
 
                 <f:if condition="!{feed} && {newsItem.relatedLinks}">
                     <aside class="rni-related">
-                        <h2><f:translate key="LLL:EXT:rss_news_import/Resources/Private/Language/locallang.xlf:frontend.relatedLinks" /></h2>
+                        <h2><f:translate key="LLL:EXT:rssnewsimport/Resources/Private/Language/locallang.xlf:frontend.relatedLinks" /></h2>
                         <ul>
                             <f:for each="{newsItem.relatedLinks}" as="relatedLink">
                                 <li><f:link.typolink parameter="{relatedLink.uri}">{f:if(condition: relatedLink.title, then: relatedLink.title, else: relatedLink.uri)}</f:link.typolink></li>
@@ -88,7 +88,7 @@
                 <f:if condition="{settings.backPid}">
                     <nav class="rni-back">
                         <f:link.page pageUid="{settings.backPid}" class="rni-link-back">
-                            <f:translate key="LLL:EXT:rss_news_import/Resources/Private/Language/locallang.xlf:frontend.back" />
+                            <f:translate key="LLL:EXT:rssnewsimport/Resources/Private/Language/locallang.xlf:frontend.back" />
                         </f:link.page>
                     </nav>
                 </f:if>
@@ -98,7 +98,7 @@
     </f:then>
     <f:else>
         <p class="rni-empty">
-            <f:translate key="LLL:EXT:rss_news_import/Resources/Private/Language/locallang.xlf:frontend.notFound" />
+            <f:translate key="LLL:EXT:rssnewsimport/Resources/Private/Language/locallang.xlf:frontend.notFound" />
         </p>
     </f:else>
 </f:if>

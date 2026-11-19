@@ -3,8 +3,8 @@
       xmlns:rni="http://typo3.org/ns/SpecialistaWeb/RssNewsImport/ViewHelpers"
       data-namespace-typo3-fluid="true">
 <f:comment>
-    Override della partial List/Item di EXT:news (RSS News Import).
-    Funziona per tutte le news; per quelle importate da RSS mostra la fonte e il link all'originale.
+    Override of the EXT:news List/Item partial (RSS News Import).
+    Works for all news; for news imported from RSS it shows the source and the link to the original.
 </f:comment>
 <rni:feedInfo importSource="{newsItem.importSource}" as="feed">
 <article class="rni-card article articletype-{newsItem.type}{f:if(condition: newsItem.istopnews, then: ' topnews')}{f:if(condition: feed, then: ' rni-card--imported')}"
@@ -32,7 +32,7 @@
             </time>
             <f:if condition="{feed}">
                 <span class="rni-badge" title="{feed.url}">
-                    <f:translate key="LLL:EXT:rss_news_import/Resources/Private/Language/locallang.xlf:frontend.source" />:
+                    <f:translate key="LLL:EXT:rssnewsimport/Resources/Private/Language/locallang.xlf:frontend.source" />:
                     {feed.title}
                 </span>
             </f:if>
@@ -62,13 +62,13 @@
 
         <div class="rni-card__actions">
             <n:link newsItem="{newsItem}" settings="{settings}" class="rni-button" title="{newsItem.title}">
-                <f:translate key="LLL:EXT:rss_news_import/Resources/Private/Language/locallang.xlf:frontend.more" />
+                <f:translate key="LLL:EXT:rssnewsimport/Resources/Private/Language/locallang.xlf:frontend.more" />
             </n:link>
             <f:if condition="{feed} && {newsItem.type} != 2">
                 <f:for each="{newsItem.relatedLinks}" as="relatedLink" iteration="linkIterator">
                     <f:if condition="{linkIterator.isFirst}">
                         <a href="{relatedLink.uri}" class="rni-link-external" target="_blank" rel="noopener noreferrer">
-                            <f:translate key="LLL:EXT:rss_news_import/Resources/Private/Language/locallang.xlf:frontend.original" />
+                            <f:translate key="LLL:EXT:rssnewsimport/Resources/Private/Language/locallang.xlf:frontend.original" />
                             <f:if condition="{feed.host}">({feed.host})</f:if>
                         </a>
                     </f:if>

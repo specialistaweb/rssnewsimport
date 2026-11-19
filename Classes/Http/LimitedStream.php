@@ -8,12 +8,12 @@ use GuzzleHttp\Psr7\StreamDecoratorTrait;
 use Psr\Http\Message\StreamInterface;
 
 /**
- * Stream di destinazione ("sink") per Guzzle che smette di accettare dati oltre un limite di byte.
+ * Destination stream ("sink") for Guzzle that stops accepting data beyond a byte limit.
  *
- * Guzzle scrive qui il corpo della risposta già decompresso: il limite vale quindi anche
- * per i contenuti gzip ("zip bomb"). Quando il limite viene superato write() restituisce 0:
- * cURL interrompe il trasferimento e lo stream handler smette di copiare.
- * Funziona allo stesso modo con l'handler cURL e con lo stream handler di PHP.
+ * Guzzle writes the already decompressed response body here, so the limit also applies
+ * to gzip content ("zip bomb"). When the limit is exceeded write() returns 0:
+ * cURL aborts the transfer and the stream handler stops copying.
+ * Works the same way with the cURL handler and with the PHP stream handler.
  */
 final class LimitedStream implements StreamInterface
 {

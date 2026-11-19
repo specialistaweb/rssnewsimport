@@ -10,7 +10,7 @@ use SpecialistaWeb\RssNewsImport\Domain\Dto\FeedItem;
  * Excludes feed items whose title or text contains one of the configured keywords.
  *
  * - keywords separated by comma (a new line works too); a keyword can be a phrase ("acqua minerale")
- * - case-insensitive, whole words only: "calcio" matches "Calcio" and "il calcio," but not "calciomercato"
+ * - case-insensitive, whole words only: "sport" matches "Sport" and "the sport," but not "sportswear"
  * - all keywords are compiled into one regular expression per feed: one match per item, no loops
  *
  * No TYPO3 dependencies: it is created for every feed by FeedImporter and can be tested on its own.

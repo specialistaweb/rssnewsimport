@@ -7,7 +7,7 @@ services:
   SpecialistaWeb\RssNewsImport\:
     resource: '../Classes/*'
     exclude:
-      # Oggetti valore e classi istanziate manualmente (non sono servizi)
+      # Value objects and classes instantiated manually (not services)
       - '../Classes/Domain/Dto/*'
       - '../Classes/Http/LimitedStream.php'
       - '../Classes/Http/HttpClientException.php'

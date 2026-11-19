@@ -10,15 +10,20 @@ use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 
 /**
- * Accesso al database con poche query mirate:
- * - una sola query (indicizzata) per sapere quali elementi del feed esistono già
- * - una sola query per esecuzione per la mappa delle categorie
- * - scritture raggruppate in transazione
+ * Database access with few, targeted queries:
+ * - one single (indexed) query to know which feed items already exist
+ * - one single query per run for the category map
+ * - writes grouped in a transaction
  */
 final class FeedRepository
 {
     public const TABLE = 'tx_rssnewsimport_feed';
     public const NEWS_TABLE = 'tx_news_domain_model_news';
+    /**
+     * Value of tx_news.import_source for imported news ("<prefix><feed uid>").
+     * Kept unchanged since 1.0 (old extension key) so news imported by earlier versions are
+     * still recognised and never duplicated.
+     */
     public const IMPORT_SOURCE_PREFIX = 'rss_news_import:';
     private const IN_CHUNK = 500;
 
@@ -52,14 +57,14 @@ final class FeedRepository
     }
 
     /**
-     * Solo i campi necessari al frontend (usato dal ViewHelper).
+     * Only the fields needed by the frontend (used by the ViewHelper).
      *
      * @return array{uid: int, title: string, url: string}|null
      */
     public function findPublicInfo(int $uid): ?array
     {
         $qb = $this->connectionPool->getQueryBuilderForTable(self::TABLE);
-        // Anche se il feed è sospeso (nascosto) la fonte delle news già pubblicate resta visibile
+        // Even if the feed is paused (hidden) the source of already published news stays visible
         $qb->getRestrictions()->removeAll()->add(new DeletedRestriction());
         $row = $qb->select('uid', 'title', 'url')->from(self::TABLE)
             ->where($qb->expr()->eq('uid', $qb->createNamedParameter($uid, Connection::PARAM_INT)))
@@ -106,8 +111,8 @@ final class FeedRepository
     }
 
     /**
-     * Stato di importazione per gli elementi indicati, in una query (indice rssnewsimport_import).
-     * Include i record cancellati: una news cancellata dalla redazione non viene re-importata.
+     * Import state of the given items, in one query (index rssnewsimport_import).
+     * Includes deleted records: a news record deleted by the editors is not imported again.
      *
      * @param string[] $importIds
      * @return array<string, array{uid: int, deleted: bool, hash: string}> chiave = import_id
@@ -137,7 +142,7 @@ final class FeedRepository
     }
 
     /**
-     * Scrive identificativo di importazione e impronta in un'unica transazione.
+     * Writes import identifier and fingerprint in a single transaction.
      *
      * @param array<int, array{importId?: string, hash: string}> $rows uid news → valori
      */
@@ -160,7 +165,7 @@ final class FeedRepository
     }
 
     /**
-     * Una sola scrittura per feed per esecuzione.
+     * One single write per feed and run.
      *
      * @param array<string, string> $httpState
      */

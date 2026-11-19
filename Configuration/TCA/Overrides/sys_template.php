@@ -2,10 +2,10 @@
 
 defined('TYPO3') or die();
 
-// Per installazioni che usano ancora i record sys_template classici.
-// Nelle installazioni con Site Sets usare invece il set "specialistaweb/rss-news-import".
+// For installations still using classic sys_template records.
+// Installations with site sets use the set "specialistaweb/rss-news-import" instead.
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addStaticFile(
-    'rss_news_import',
+    'rssnewsimport',
     'Configuration/TypoScript/',
-    'RSS News Import (template Fluid per EXT:news)'
+    'RSS News Import (Fluid templates for EXT:news)'
 );

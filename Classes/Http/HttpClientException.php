@@ -7,7 +7,7 @@ namespace SpecialistaWeb\RssNewsImport\Http;
 use Psr\Http\Client\ClientExceptionInterface;
 
 /**
- * Errore di trasporto in formato PSR-18: SimplePie lo intercetta e lo riporta come errore del feed
- * invece di interrompere l'esecuzione.
+ * Transport error in PSR-18 format: SimplePie catches it and reports it as a feed error
+ * instead of aborting the run.
  */
 final class HttpClientException extends \RuntimeException implements ClientExceptionInterface {}

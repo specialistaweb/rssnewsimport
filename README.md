@@ -1,185 +1,177 @@
-# RSS News Import 2.0 (`rss_news_import`) per TYPO3 v14 – con SimplePie
+# RSS News Import 3.0 (`rssnewsimport`) for TYPO3 v14 – with SimplePie
 
-Autore: Giulia Tuveri – Specialistaweb (gt@specialistaweb.it) · Composer: `specialistaweb/rss-news-import`
+Author: Giulia Tuveri – Specialistaweb (gt@specialistaweb.it) · Composer: `specialistaweb/rss-news-import`
 
-Importa uno o più feed **RSS 0.9x/1.0/2.0 e Atom 0.3/1.0** da siti esterni nelle tabelle di
-**EXT:news** di Georg Ringer (`tx_news_domain_model_news`) tramite lo **Scheduler**, con immagini,
-categorie, link all'articolo originale e template **Fluid** per il frontend.
+Imports one or more **RSS 0.9x/1.0/2.0 and Atom 0.3/1.0** feeds from external sites into the
+**EXT:news** tables by Georg Ringer (`tx_news_domain_model_news`) via the **Scheduler**, with images,
+categories, a link to the original article and **Fluid** templates for the frontend.
 
-La lettura dei feed è affidata a **[SimplePie](https://simplepie.org) 1.9** (formati, Media RSS, iTunes,
-Dublin Core, codifiche, date, autori, categorie, allegati, URL relativi, prima sanitizzazione HTML).
+Feeds are read by **[SimplePie](https://simplepie.org) 1.9** (formats, Media RSS, iTunes, Dublin Core,
+encodings, dates, authors, categories, enclosures, relative URLs, first HTML sanitisation).
 
-| Requisito | Versione |
+| Requirement | Version |
 |---|---|
-| TYPO3 | 14.0 – 14.4 (LTS 14.3 consigliata) |
-| PHP | 8.2+ (estensioni `xml`, `xmlreader`, `dom`, `fileinfo`; consigliate `intl`, `iconv`, `mbstring`) |
-| simplepie/simplepie | 1.9 (installato da Composer, oppure copia inclusa per la modalità classica) |
+| TYPO3 | 14.0 – 14.4 (LTS 14.3 recommended) |
+| PHP | 8.2+ (extensions `xml`, `xmlreader`, `dom`, `fileinfo`; recommended `intl`, `iconv`, `mbstring`) |
+| simplepie/simplepie | 1.9 (installed by Composer, or the bundled copy in classic mode) |
 | georgringer/news | 14.x |
 | typo3/cms-scheduler | 14.x |
 
 ---
 
-## 1. Installazione
+## 1. Installation
 
-### Composer (consigliato)
+### Composer (recommended)
 
-1. Copia la cartella `rss_news_import` in `packages/rss_news_import` nel progetto.
-2. Nel `composer.json` del progetto aggiungi il path repository (se non c'è già):
+1. Copy the extension folder to `packages/rssnewsimport` in your project.
+2. Add the path repository to the project `composer.json` (if not there yet):
    ```json
    "repositories": [
        { "type": "path", "url": "packages/*" }
    ]
    ```
-3. Esegui:
+3. Run:
    ```bash
    composer require specialistaweb/rss-news-import:@dev
    vendor/bin/typo3 extension:setup
    vendor/bin/typo3 cache:flush
    ```
 
-Composer installa automaticamente anche `simplepie/simplepie`.
+Composer also installs `simplepie/simplepie` automatically.
 
-### Modalità classica (senza Composer)
+### Classic mode (without Composer)
 
-SimplePie 1.9.0 è incluso in `Resources/Private/PHP/SimplePie` (licenza BSD-3-Clause) e viene caricato
-automaticamente solo se non è già presente nel sistema.
+SimplePie 1.9.0 is bundled in `Resources/Private/PHP/SimplePie` (BSD-3-Clause license) and is loaded
+automatically only if it is not already available in the system.
 
-1. Backend → **Admin Tools → Extensions** → pulsante di upload → carica `rss_news_import.zip`.
-2. Attiva l'estensione (crea automaticamente la tabella `tx_rssnewsimport_feed`).
-3. **Admin Tools → Maintenance → Analyze Database Structure** per sicurezza.
+1. Backend → **Admin Tools → Extensions** → upload button → upload `rssnewsimport_3.0.0.zip`.
+2. Activate the extension (it creates the table `tx_rssnewsimport_feed`).
+3. **Admin Tools → Maintenance → Analyze Database Structure** to be sure.
 
 ---
 
-### Aggiornamento dalla versione 1.x
+## 2. Feed configuration
 
-1. Sostituisci l'estensione e svuota tutte le cache.
-2. *Maintenance → Analyze Database Structure* (nessuna modifica attesa rispetto alla 1.1).
-3. Le news già importate **vengono riconosciute**: l'identificativo (guid/id → link → titolo) è calcolato
-   come nella 1.x, quindi non ci sono duplicati.
-4. Se hai attivato "Aggiorna le news già importate", alla prima esecuzione alcune news potrebbero essere
-   riscritte una volta, perché SimplePie normalizza l'HTML in modo leggermente diverso dal parser 1.x.
+1. Create (or use) a **folder** (sys folder) for the news, e.g. "Imported news".
+2. In the **List** module on that folder create one **RSS feed** record per source site:
 
-## 2. Configurazione dei feed
-
-1. Crea (o usa) una **cartella di sistema** per le news, ad es. "News importate".
-2. Nel modulo **Elenco** su quella cartella crea un record **Feed RSS** per ogni sito sorgente:
-
-| Campo | Descrizione |
+| Field | Description |
 |---|---|
-| Nome della fonte | Mostrato nel frontend come "Fonte: …" |
-| URL del feed | URL **diretto** del feed RSS/Atom (es. `https://www.sito.it/feed/`), non la home page: l'autodiscovery è disattivato per sicurezza |
-| Cartella di destinazione | Dove salvare le news; vuoto = la cartella del record feed |
-| Tipo di news | *News normale* (testo sul sito + link all'originale) oppure *Pagina esterna* (il titolo porta direttamente all'articolo originale) |
-| Scarica le immagini | Scarica la prima immagine (enclosure, `media:content`, `media:thumbnail` o primo `<img>`) in FAL e la collega come immagine di anteprima |
-| Aggiungi link all'originale | Crea un *related link* di EXT:news verso l'articolo sorgente |
-| Aggiorna le news già importate | Aggiorna titolo, teaser, testo e data se cambiano nel feed |
-| Importa come nascoste | Le news arrivano nascoste, la redazione le pubblica a mano |
-| Categorie | Categorie di sistema assegnate a tutte le news del feed |
-| Associa le categorie del feed | Collega le `<category>` del feed alle `sys_category` esistenti con lo stesso titolo |
-| Escludi le news che contengono… (scheda *Filtri*) | Parole chiave separate da virgola: la news non viene importata se titolo o testo ne contengono una (vedi sotto) |
-| Intervallo di controllo | Ogni quanti minuti contattare il sito (default 60), indipendentemente da quanto spesso gira lo Scheduler |
-| Numero massimo / età massima | Limiti per ogni esecuzione (0 = nessun limite) |
-| Ultima importazione / Errori consecutivi / Ultimo esito | Compilati automaticamente a ogni esecuzione |
+| Source name | Shown in the frontend as "Source: …" |
+| Feed URL | **Direct** URL of the RSS/Atom feed (e.g. `https://www.example.com/feed/`), not the home page: autodiscovery is disabled for security |
+| Target folder | Where the news are stored; empty = the folder of the feed record |
+| News type | *Regular news* (text on the site + link to the original) or *External page* (the title links straight to the original article) |
+| Download images | Downloads the first image (enclosure, `media:content`, `media:thumbnail` or first `<img>`) into FAL and attaches it as preview image |
+| Add link to the original | Creates an EXT:news *related link* to the source article |
+| Update already imported news | Updates title, teaser, text and date when they change in the feed |
+| Import as hidden | News arrive hidden and the editors publish them manually |
+| Categories | System categories assigned to all news of the feed |
+| Map feed categories | Maps the `<category>` elements of the feed to existing `sys_category` records with the same title |
+| Exclude news containing… (tab *Filters*) | Comma separated keywords: a news item is not imported if its title or text contains one of them (see below) |
+| Check interval | How often (in minutes) the site is contacted (default 60), regardless of how often the Scheduler runs |
+| Maximum number / maximum age | Limits per run (0 = no limit) |
+| Last import / Consecutive errors / Last result | Filled in automatically on every run |
 
-Per disattivare temporaneamente un feed basta **nasconderlo**.
+To pause a feed temporarily, simply **hide** it.
 
-### Filtro per parole chiave
+### Keyword filter
 
-Nella scheda **Filtri** del record feed puoi indicare parole o frasi separate da virgola
-(anche una per riga). Una news viene scartata se **titolo, sommario o testo** ne contengono almeno una.
+In the **Filters** tab of the feed record you can enter words or phrases separated by commas
+(also one per line). A news item is skipped if its **title, summary or text** contains at least one of them.
 
-Esempio: importi le news sportive sul *calcio* e vuoi scartare quelle sul calcio come minerale:
+Example: you import sports news and want to skip the ones about betting:
 
-    osteoporosi, integratori, vitamina D, ossa, alimentazione
+    betting, odds, bookmaker, casino
 
-Regole:
-- maiuscole e minuscole sono indifferenti; i tag HTML e le entità (`&egrave;`) non disturbano;
-- vale solo per **parole o frasi intere**: `ossa` non esclude `rossa`, `calcio` non esclude `calciomercato`;
-- una frase con spazi trova anche lo stesso testo andato a capo o con più spazi;
-- le news scartate non vengono create e, se erano già state importate, non vengono più aggiornate
-  (quelle già pubblicate restano: cancellale a mano se serve);
-- se modifichi l'elenco, alla prossima esecuzione il feed viene rielaborato subito, anche se non è cambiato;
-- il numero di news escluse compare in "Ultimo esito" e nella colonna "Esclusi" del comando;
-- limiti: 200 parole chiave per feed, 100 caratteri ciascuna. Attenzione alle parole molto brevi o
-  comuni: `serie a` esclude anche "una serie a puntate".
+Rules:
+- upper and lower case do not matter; HTML tags and entities (`&eacute;`) do not interfere;
+- only **whole words or phrases** match: `bet` does not exclude `better`;
+- a phrase with spaces also matches the same text split over lines or with several spaces;
+- skipped news are not created and, if they had already been imported, they are no longer updated
+  (news already published stay: delete them manually if needed);
+- if you change the list, the feed is processed again at the next run, even if it did not change;
+- the number of excluded news appears in "Last result" and in the "Excluded" column of the command;
+- limits: 200 keywords per feed, 100 characters each. Be careful with very short or common words.
 
-### Impostazioni globali
+### Global settings
 
-**Admin Tools → Settings → Extension Configuration → rss_news_import**
+**Admin Tools → Settings → Extension Configuration → rssnewsimport**
 
-- `imageFolder` – cartella FAL per le immagini (default `1:/user_upload/rss_news_import/`, creata automaticamente)
+- `imageFolder` – FAL folder for the images (default `1:/user_upload/rssnewsimport/`, created automatically)
 - `httpTimeout`, `userAgent`
-- `teaserLength` – lunghezza massima del teaser
-- `allowedTags` – tag HTML mantenuti nel testo (il resto viene rimosso e l'HTML passa dal sanitizer del core)
-- **Limiti:** `maxFeedSizeKb` (5 MB), `maxItemsPerFeed` (200), `maxImageSizeKb` (5 MB),
+- `teaserLength` – maximum teaser length
+- `allowedTags` – HTML tags kept in the text (everything else is removed and the HTML goes through the core sanitizer)
+- **Limits:** `maxFeedSizeKb` (5 MB), `maxItemsPerFeed` (200), `maxImageSizeKb` (5 MB),
   `maxImageMegapixels` (40), `maxImagesPerRun` (50), `maxBodySizeKb` (200)
-- **Sicurezza:** `allowPrivateHosts` (default disattivato) – attivalo solo se devi leggere feed da una intranet
+- **Security:** `allowPrivateHosts` (off by default) – enable it only if you must read feeds from an intranet
 
 ---
 
 ## 3. Scheduler
 
-1. **System → Scheduler → +** (nuovo task).
-2. Classe: **Execute console commands** (*Esegui comandi da console*).
-3. Comando: **`rssnewsimport:import`**.
-4. Tipo: ricorrente, ad es. ogni 10–15 minuti (`*/15 * * * *`). Non serve allinearlo ai feed:
-   ogni feed viene contattato solo allo scadere del **suo** intervallo di controllo, quindi
-   un'esecuzione senza feed in scadenza non fa richieste HTTP e solo una query al database.
-5. Opzionale: nel campo dell'opzione `--feed` indica gli uid separati da virgola per un task dedicato a feed specifici.
+1. **System → Scheduler → +** (new task).
+2. Class: **Execute console commands**.
+3. Command: **`rssnewsimport:import`**.
+4. Type: recurring, e.g. every 10–15 minutes (`*/15 * * * *`). There is no need to align it with the feeds:
+   every feed is contacted only when **its own** check interval has passed, so a run without due feeds
+   makes no HTTP request and only one database query.
+5. Optional: in the field of the `--feed` option enter comma separated uids for a task dedicated to specific feeds.
 
-Lo Scheduler deve essere richiamato dal cron di sistema, ad esempio:
+The Scheduler must be called by the system cron, for example:
 
 ```cron
-*/5 * * * * /percorso/progetto/vendor/bin/typo3 scheduler:run
+*/5 * * * * /path/to/project/vendor/bin/typo3 scheduler:run
 ```
 
-### Da riga di comando
+### Command line
 
 ```bash
-vendor/bin/typo3 rssnewsimport:import              # tutti i feed attivi
-vendor/bin/typo3 rssnewsimport:import --feed=1,3   # solo alcuni feed
-vendor/bin/typo3 rssnewsimport:import --force      # ignora intervallo, backoff e cache HTTP
-vendor/bin/typo3 rssnewsimport:import --dry-run    # simulazione, nessuna scrittura
-vendor/bin/typo3 rssnewsimport:import -v           # output dettagliato
+vendor/bin/typo3 rssnewsimport:import              # all active feeds
+vendor/bin/typo3 rssnewsimport:import --feed=1,3   # only some feeds
+vendor/bin/typo3 rssnewsimport:import --force      # ignore interval, backoff and HTTP cache
+vendor/bin/typo3 rssnewsimport:import --dry-run    # simulation, nothing is written
+vendor/bin/typo3 rssnewsimport:import -v           # verbose output
 ```
 
-Un lock impedisce esecuzioni sovrapposte.
+A lock prevents overlapping runs.
 
 ---
 
-## 4. Frontend Fluid
+## 4. Fluid frontend
 
-L'estensione fornisce override dei template di EXT:news:
+The extension provides overrides of the EXT:news templates:
 
-- `Resources/Private/Extensions/News/Partials/List/Item.html` – card della lista con immagine, data,
-  badge "Fonte", categorie, "Leggi tutto" e link all'originale
-- `Resources/Private/Extensions/News/Templates/News/Detail.html` – dettaglio con box
-  "Questo articolo è stato pubblicato originariamente da …"
-- `Resources/Public/Css/rss-news-import.css` – stile minimo (variabili CSS `--rni-*` per adattarlo)
+- `Resources/Private/Extensions/News/Partials/List/Item.html` – list card with image, date,
+  "Source" badge, categories, "Read more" and link to the original
+- `Resources/Private/Extensions/News/Templates/News/Detail.html` – detail view with the box
+  "This article was originally published by …"
+- `Resources/Public/Css/rss-news-import.css` – minimal styles (CSS variables `--rni-*` to adapt them)
 
-I template funzionano per **tutte** le news: le parti specifiche (fonte, link originale)
-compaiono solo per quelle importate.
+The templates work for **all** news: the specific parts (source, original link) appear only
+for imported news.
 
-### Attivazione
+Frontend labels are in English; an Italian translation is included (`it.locallang.xlf`).
 
-- **Site Sets (TYPO3 v14, consigliato):** *Site Management → Sites → modifica sito → Sets* →
-  aggiungi **"RSS News Import (template Fluid per EXT:news)"** dopo il set di EXT:news.
-- **Template TypoScript classico:** *Site Management → TypoScript → Edit TypoScript Record →
-  Includes* → aggiungi "RSS News Import (template Fluid per EXT:news)" **dopo** quello di News.
+### Activation
 
-Poi inserisci il plugin **News** (lista e dettaglio) come di consueto, con la cartella delle news
-importate come *Startingpoint*.
+- **Site sets (TYPO3 v14, recommended):** *Site Management → Sites → edit site → Sets* →
+  add **"RSS News Import (Fluid templates for EXT:news)"** after the EXT:news set.
+- **Classic TypoScript record:** *Site Management → TypoScript → Edit TypoScript Record →
+  Includes* → add "RSS News Import (Fluid templates for EXT:news)" **after** the News one.
 
-### Personalizzare i template
+Then insert the **News** plugin (list and detail) as usual, with the folder of the imported news
+as *Startingpoint*.
 
-Copia i file in un tuo site package e registrali con indice più alto:
+### Customising the templates
+
+Copy the files to your site package and register them with a higher index:
 
 ```typoscript
-plugin.tx_news.view.templateRootPaths.200 = EXT:mio_sitepackage/Resources/Private/Extensions/News/Templates/
-plugin.tx_news.view.partialRootPaths.200 = EXT:mio_sitepackage/Resources/Private/Extensions/News/Partials/
+plugin.tx_news.view.templateRootPaths.200 = EXT:my_sitepackage/Resources/Private/Extensions/News/Templates/
+plugin.tx_news.view.partialRootPaths.200 = EXT:my_sitepackage/Resources/Private/Extensions/News/Partials/
 ```
 
-Nei template è disponibile il ViewHelper:
+The following ViewHelper is available in the templates:
 
 ```html
 <html xmlns:rni="http://typo3.org/ns/SpecialistaWeb/RssNewsImport/ViewHelpers" data-namespace-typo3-fluid="true">
@@ -188,130 +180,143 @@ Nei template è disponibile il ViewHelper:
 </rni:feedInfo>
 ```
 
-Per disattivare il CSS: `page.includeCSS.rssNewsImport >`
+To disable the CSS: `page.includeCSS.rssNewsImport >`
 
 ---
 
-## 5. Come funziona
+## 5. How it works
 
-- I feed vengono scaricati con il client HTTP di TYPO3 (rispetta proxy e impostazioni `HTTP`).
-- L'XML viene letto in modo sicuro (nessuna entità esterna, nessun accesso di rete dal parser).
-- Ogni elemento è identificato da `import_source = rss_news_import:<uid feed>` e
-  `import_id = sha1(guid | link | titolo)`, i campi standard di EXT:news per gli import:
-  **nessun duplicato**.
-- Le news importate e poi **cancellate** dalla redazione non vengono re-importate.
-- Le news vengono create con **DataHandler**: slug (`path_segment`), categorie, riferimenti FAL,
-  refindex e cache sono gestiti dal core come per un inserimento da backend.
-- Link e immagini relativi nel testo vengono resi assoluti; i link si aprono in una nuova scheda.
-- Le immagini sono salvate con un nome derivato dall'URL: la stessa immagine non viene scaricata due volte.
+- Feeds are downloaded with the TYPO3 HTTP client (honours proxy and `HTTP` settings).
+- XML is read safely (no external entities, no network access from the parser).
+- Every item is identified by `import_source = rss_news_import:<feed uid>` and
+  `import_id = sha1(guid | link | title)`, the standard EXT:news fields for imports:
+  **no duplicates**. The `import_source` prefix keeps the old extension key on purpose, so news
+  imported by earlier versions are still recognised.
+- News imported and then **deleted** by the editors are not imported again.
+- News are created with the **DataHandler**: slug (`path_segment`), categories, FAL references,
+  reference index and caches are handled by the core as for a backend insert.
+- Relative links and images in the text are made absolute; links open in a new tab.
+- Images are stored with a file name derived from the URL: the same image is never downloaded twice.
 
-## 6. Come è integrato SimplePie
+## 6. How SimplePie is integrated
 
 ```
 Scheduler ─► ImportFeedsCommand ─► FeedImporter ─► FeedReader ─► SimplePie
                                         │                           │ (PSR-18)
                                         │                           ▼
-                                        │                  SimplePieHttpClient ─► HttpClient ─► stack HTTP TYPO3
-                                        │                                                (UrlGuard, limiti, 304)
-                                        └─► DataHandler ─► tx_news_domain_model_news (+ FAL, categorie, link)
+                                        │                  SimplePieHttpClient ─► HttpClient ─► TYPO3 HTTP stack
+                                        │                                                (UrlGuard, limits, 304)
+                                        └─► DataHandler ─► tx_news_domain_model_news (+ FAL, categories, links)
 ```
 
-- SimplePie riceve un **client PSR-18** (`SimplePie::set_http_client()`, il metodo che SimplePie indica
-  come obbligatorio dalla 2.0). Il suo downloader interno non viene usato perché ignora le impostazioni
-  HTTP/proxy di TYPO3 e non ha protezioni SSRF.
-- Il trasporto è quello di TYPO3 (Guzzle): usa cURL se l'estensione PHP è presente, altrimenti gli stream
-  di PHP. Funziona in entrambi i casi.
-- **Cache di SimplePie disattivata**: ETag, Last-Modified e impronta del feed sono salvati nel record del feed;
-  se il feed non è cambiato la lettura si ferma prima del parsing.
-- **Autodiscovery disattivato**: SimplePie, cercando il feed in una pagina HTML, leggerebbe dal disco locale
-  un link `file://`; inoltre ogni tentativo costerebbe richieste in più.
-- L'URL del feed viene validato prima di passarlo a SimplePie (un percorso locale verrebbe letto dal disco).
-- L'HTML già ripulito da SimplePie (tag `script`, `iframe`, `svg`, attributi `on*`/`style` rimossi, URL resi
-  assoluti) passa comunque dalla pulizia dell'estensione e dal sanitizer del core TYPO3.
+- SimplePie gets a **PSR-18 client** (`SimplePie::set_http_client()`, the method SimplePie declares
+  mandatory from 2.0 on). Its internal downloader is not used because it ignores the TYPO3
+  HTTP/proxy settings and has no SSRF protection.
+- The transport is the TYPO3 one (Guzzle): it uses cURL if the PHP extension is available, otherwise
+  PHP streams. It works in both cases.
+- **SimplePie cache disabled**: ETag, Last-Modified and the feed fingerprint are stored in the feed record;
+  if the feed did not change, reading stops before parsing.
+- **Autodiscovery disabled**: while looking for the feed in an HTML page, SimplePie would read a `file://`
+  link from the local disk; besides, every attempt would cost extra requests.
+- The feed URL is validated before it is handed to SimplePie (a local path would be read from disk).
+- HTML already cleaned by SimplePie (`script`, `iframe`, `svg` tags and `on*`/`style` attributes removed,
+  URLs made absolute) still goes through the cleaning of the extension and the TYPO3 core sanitizer.
 
-## 7. Prestazioni e sicurezza
+## 7. Performance and security
 
-**Poche richieste ai siti esterni**
-- Intervallo minimo per feed; dopo errori consecutivi l'attesa raddoppia (fino a 24 h), poi torna normale al primo successo.
-- GET condizionale (`ETag` / `If-Modified-Since`): se il feed non è cambiato il server risponde `304` e non si scarica nulla.
-- Se il server non supporta il 304, un'impronta SHA-1 del contenuto evita parsing e query quando il feed è identico.
-- Compressione gzip/deflate, una sola connessione per feed, cache DNS per esecuzione.
-- Immagini: mai riscaricate (nome file derivato dall'URL), massimo `maxImagesPerRun` per esecuzione.
+**Few requests to external sites**
+- Minimum interval per feed; after consecutive errors the waiting time doubles (up to 24 h) and returns to normal after the first success.
+- Conditional GET (`ETag` / `If-Modified-Since`): if the feed did not change the server answers `304` and nothing is downloaded.
+- If the server does not support 304, a SHA-1 fingerprint of the content avoids parsing and queries when the feed is identical.
+- gzip/deflate compression, one connection per feed, DNS cache per run.
+- Images: never downloaded twice (file name derived from the URL), at most `maxImagesPerRun` per run.
 
-**Database leggero**
-- Feed invariato: 1 sola `UPDATE` sul record del feed.
-- Una query indicizzata per sapere quali elementi del feed esistono già (indice
-  `rssnewsimport_import` aggiunto su `import_source, import_id` della tabella news).
-- Aggiornamenti solo per le news il cui contenuto è davvero cambiato (colonna `tx_rssnewsimport_hash`), senza rileggere titoli o testi.
-- Inserimenti raggruppati (25 news per DataHandler), **senza voci in `sys_log`** e senza rilettura dei record.
-- Mappa delle categorie letta una sola volta per esecuzione; verifica immagini esistenti con una query su `sys_file.identifier_hash`.
-- Frontend: nessuna query per le news non importate, al massimo una per feed per richiesta (e poi cache di pagina).
-- Cache: la svuota EXT:news solo per le pagine della cartella interessata.
+**Light on the database**
+- Unchanged feed: one single `UPDATE` of the feed record.
+- One indexed query to know which feed items already exist (index `rssnewsimport_import` added on
+  `import_source, import_id` of the news table).
+- Updates only for news whose content really changed (column `tx_rssnewsimport_hash`), without reading titles or texts.
+- Grouped inserts (25 news per DataHandler), **without `sys_log` entries** and without reading the records back.
+- Category map read once per run; existing images checked with one query on `sys_file.identifier_hash`.
+- Frontend: no query for news that were not imported, at most one per feed and request (then page cache).
+- Cache: EXT:news clears it only for the pages of the affected folder.
 
-**Risorse limitate e prevedibili**
-- Download scritto in un buffer limitato (`LimitedStream`, max 1 MB in RAM poi su disco) con tetto di byte (valido anche dopo la decompressione: niente "zip bomb"); immagini scritte direttamente su file temporaneo.
-- Tetti su elementi per feed, lunghezza del testo, dimensioni e megapixel delle immagini.
-- Pulizia HTML con scansione lineare (nessuna regex soggetta a backtracking su HTML malformato).
-- Lock: due esecuzioni non possono sovrapporsi.
+**Limited, predictable resources**
+- Download written to a limited buffer (`LimitedStream`, max 1 MB in RAM, then on disk) with a byte cap (also valid after decompression: no "zip bomb"); images written directly to a temporary file.
+- Caps on items per feed, text length, image size and megapixels.
+- HTML cleaning with a linear scan (no regular expression prone to backtracking on malformed HTML).
+- Lock: two runs cannot overlap.
 
-**Sicurezza**
-- **SSRF:** feed, immagini e ogni redirect accettano solo `http/https` verso IP pubblici (no localhost, reti private, link-local/metadata cloud, CGNAT), senza credenziali nell'URL; se PHP ha l'estensione cURL, l'IP verificato viene bloccato nella connessione (`CURLOPT_RESOLVE`) contro il DNS rebinding; senza cURL si usa lo stream handler di PHP con la sola validazione.
-- **XXE / billion laughs:** risposte con `<!ENTITY>` rifiutate prima di arrivare a SimplePie.
-- **XSS:** HTML ripulito (allowlist di tag, rimozione di attributi `on*`/`style`, schemi `javascript:`/`data:` neutralizzati) e poi passato dal sanitizer del core; link della news accettati solo se `http(s)`; output Fluid sempre escapato.
-- **File:** solo JPEG/PNG/GIF/WebP/AVIF verificati sul contenuto reale (no SVG); nomi file generati, nessun percorso dal feed.
-- **Query:** solo QueryBuilder con parametri; scritture tramite DataHandler.
-- I link esterni nel testo hanno `rel="noopener noreferrer nofollow"`.
+**Security**
+- **SSRF:** feeds, images and every redirect accept only `http/https` to public IPs (no localhost, private networks, link-local/cloud metadata, CGNAT), without credentials in the URL; if PHP has the cURL extension, the verified IP is pinned in the connection (`CURLOPT_RESOLVE`) against DNS rebinding; without cURL the PHP stream handler is used with validation only.
+- **XXE / billion laughs:** responses containing `<!ENTITY>` are rejected before they reach SimplePie.
+- **XSS:** HTML cleaned (tag allowlist, `on*`/`style` attributes removed, `javascript:`/`data:` schemes neutralised) and then passed through the core sanitizer; news links accepted only if `http(s)`; Fluid output always escaped.
+- **Files:** only JPEG/PNG/GIF/WebP/AVIF verified on the real content (no SVG); generated file names, no path taken from the feed.
+- **Queries:** QueryBuilder with parameters only; writes through the DataHandler.
+- External links in the text get `rel="noopener noreferrer nofollow"`.
 
-## 8. Risoluzione problemi
+## 8. Troubleshooting
 
-- **"Ultimo esito"** nel record feed mostra gli ultimi errori.
-- Log: `var/log/typo3_*.log` (canale `SpecialistaWeb.RssNewsImport`).
-- Prova manuale: `vendor/bin/typo3 rssnewsimport:import --feed=<uid> --force --dry-run -v`.
-- "A feed could not be found at …": l'URL non è un feed (es. la home page). Usa l'URL diretto del feed,
-  di solito indicato dall'icona RSS del sito o in `<link rel="alternate" type="application/rss+xml">`.
-- "Host in rete privata non consentito": il feed punta a un indirizzo interno; se è voluto, attiva `allowPrivateHosts`.
-- Errore HTTP 403: alcuni siti bloccano i bot; modifica `userAgent` nella configurazione.
-- Immagini mancanti: verifica che la cartella FAL sia scrivibile e che `maxImageSizeKb` sia sufficiente.
+- **"Last result"** in the feed record shows the latest errors.
+- Log: `var/log/typo3_*.log` (channel `SpecialistaWeb.RssNewsImport`).
+- Manual test: `vendor/bin/typo3 rssnewsimport:import --feed=<uid> --force --dry-run -v`.
+- "A feed could not be found at …": the URL is not a feed (e.g. the home page). Use the direct feed URL,
+  usually shown by the RSS icon of the site or in `<link rel="alternate" type="application/rss+xml">`.
+- "Host in a private/reserved network not allowed": the feed points to an internal address; if this is intended, enable `allowPrivateHosts`.
+- HTTP error 403: some sites block bots; change `userAgent` in the configuration.
+- Missing images: check that the FAL folder is writable and that `maxImageSizeKb` is large enough.
 
-## Novità della 2.0.1
+## Changelog
 
-- Filtro per parole chiave per ogni feed (campo `exclude_keywords`, scheda *Filtri*).
-- Nome Composer `specialistaweb/rss-news-import` e namespace PHP `SpecialistaWeb\RssNewsImport`
-  (prima `custom/…` e `Custom\…`). Se hai template Fluid personalizzati che usano il ViewHelper
-  `rni:feedInfo`, aggiorna il namespace in `http://typo3.org/ns/SpecialistaWeb/RssNewsImport/ViewHelpers`.
-- Autore e descrizione in inglese in `ext_emconf.php` e `composer.json`.
-- Il Site Set si chiama ora `specialistaweb/rss-news-import` (prima `custom/rss-news-import`).
+### 3.0.0
 
-**Aggiornamento dalla 2.0.0:** sostituisci l'estensione, poi *Maintenance → Analyze Database Structure*
-(aggiunge la colonna `exclude_keywords`), *Rebuild PHP Autoload Information* (installazione classica)
-e *Flush TYPO3 and PHP Cache*.
-**Importante:** se il sito usa il Site Set, riaggiungilo dopo l'aggiornamento
-(*Site Management → Sites → modifica sito → Sets*: togli la voce non più valida e aggiungi
-"RSS News Import (template Fluid per EXT:news)"), oppure in `config/sites/<sito>/config.yaml`
-sostituisci `custom/rss-news-import` con `specialistaweb/rss-news-import` sotto `dependencies`.
-Senza questo passaggio i template Fluid e il CSS dell'estensione non vengono caricati. Con Composer: cambia il pacchetto in `specialistaweb/rss-news-import`
-nel `composer.json` del progetto, poi `composer update` e `vendor/bin/typo3 extension:setup`.
+- **New extension key `rssnewsimport`** (was `rss_news_import`), as registered in the TER;
+  `composer.json` contains it in `extra.typo3/cms.extension-key`.
+- All strings in English: code comments, messages of the console command and of the log,
+  extension configuration labels, README. The Italian translation of the backend and frontend
+  labels is still included in separate files (`it.locallang*.xlf`).
+- TCA: `ctrl.searchFields` removed (no longer supported by TYPO3 v14).
 
-## Struttura
+**Upgrading from 2.x** (the database table `tx_rssnewsimport_feed`, the news and the imported images stay as they are):
+
+1. *Admin Tools → Extensions*: deactivate the old extension `rss_news_import` (answer **no** if you are asked to
+   remove its database tables), then upload and activate `rssnewsimport`. With Composer the package name does
+   not change: `composer update specialistaweb/rss-news-import` and `vendor/bin/typo3 extension:setup`.
+2. *Maintenance → Analyze Database Structure* and *Flush TYPO3 and PHP Cache*
+   (classic mode: also *Rebuild PHP Autoload Information*).
+3. Extension configuration: the values saved for `rss_news_import` are still read; save them once in
+   *Settings → Extension Configuration → rssnewsimport* to move them to the new key.
+4. Classic TypoScript record: remove the old static template and add "RSS News Import (Fluid templates for EXT:news)"
+   again (the site set `specialistaweb/rss-news-import` does not change).
+5. The Scheduler task (`rssnewsimport:import`) does not change. Already imported news are recognised: no duplicates.
+
+### 2.0.1
+
+- Keyword filter per feed (field `exclude_keywords`, tab *Filters*).
+- Composer name `specialistaweb/rss-news-import` and PHP namespace `SpecialistaWeb\RssNewsImport`
+  (before `custom/…` and `Custom\…`); site set `specialistaweb/rss-news-import`.
+- Author and English description in `ext_emconf.php` and `composer.json`.
+
+## Structure
 
 ```
-rss_news_import/
+rssnewsimport/
 ├── Classes/
-│   ├── Command/ImportFeedsCommand.php      comando console / Scheduler
+│   ├── Command/ImportFeedsCommand.php      console command / Scheduler
 │   ├── Configuration/ExtensionSettings.php
 │   ├── Domain/Dto/                         FeedItem, FeedReadResult, ImportResult, HttpResponse
 │   ├── Domain/Repository/FeedRepository.php
-│   ├── Feed/FeedReader.php                 lettura feed con SimplePie
-│   ├── Feed/KeywordFilter.php              filtro per parole chiave
-│   ├── Http/SimplePieHttpClient.php        client PSR-18 per SimplePie
-│   ├── Http/LimitedStream.php              buffer di download con limite di byte
-│   ├── Security/UrlGuard.php               protezione SSRF
+│   ├── Feed/FeedReader.php                 feed reading with SimplePie
+│   ├── Feed/KeywordFilter.php              keyword filter
+│   ├── Http/SimplePieHttpClient.php        PSR-18 client for SimplePie
+│   ├── Http/LimitedStream.php              download buffer with byte limit
+│   ├── Security/UrlGuard.php               SSRF protection
 │   ├── Service/                            FeedImporter, HttpClient, ImageImporter
 │   └── ViewHelpers/FeedInfoViewHelper.php
 ├── Configuration/  TCA, Sets, TypoScript, Services.yaml, Icons.php
-├── Resources/      template Fluid, lingue (en/it), CSS, icone, SimplePie (Private/PHP)
-├── Tests/Fixtures/ feed di esempio
+├── Resources/      Fluid templates, languages (en + it), CSS, icons, SimplePie (Private/PHP)
+├── Tests/Fixtures/ sample feeds
 ├── composer.json · ext_emconf.php · ext_localconf.php · ext_tables.sql · ext_conf_template.txt
 ```
 
-Licenza: GPL-2.0-or-later
+License: GPL-2.0-or-later

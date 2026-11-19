@@ -1,15 +1,15 @@
-# RSS News Import: override dei template Fluid di EXT:news.
-# Fluid usa per ogni file il percorso con indice più alto che lo contiene,
-# quindi tutti gli altri template di EXT:news restano invariati.
+# RSS News Import: overrides of the EXT:news Fluid templates.
+# For every file Fluid uses the path with the highest index that contains it,
+# so all other EXT:news templates stay unchanged.
 plugin.tx_news {
     view {
         templateRootPaths {
-            150 = EXT:rss_news_import/Resources/Private/Extensions/News/Templates/
+            150 = EXT:rssnewsimport/Resources/Private/Extensions/News/Templates/
         }
         partialRootPaths {
-            150 = EXT:rss_news_import/Resources/Private/Extensions/News/Partials/
+            150 = EXT:rssnewsimport/Resources/Private/Extensions/News/Partials/
         }
     }
 }
 
-page.includeCSS.rssNewsImport = EXT:rss_news_import/Resources/Public/Css/rss-news-import.css
+page.includeCSS.rssNewsImport = EXT:rssnewsimport/Resources/Public/Css/rss-news-import.css

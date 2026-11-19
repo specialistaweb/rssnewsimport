@@ -7,15 +7,15 @@ namespace SpecialistaWeb\RssNewsImport\Security;
 use SpecialistaWeb\RssNewsImport\Configuration\ExtensionSettings;
 
 /**
- * Protezione SSRF: accetta solo URL http(s) verso host pubblici.
+ * SSRF protection: accepts only http(s) URLs to public hosts.
  *
- * Gli URL delle immagini arrivano da feed esterni (non fidati): senza questo controllo un feed
- * potrebbe far scaricare al server risorse interne (localhost, 169.254.169.254, intranet...).
- * L'IP validato viene poi "bloccato" nella richiesta (CURLOPT_RESOLVE) per evitare DNS rebinding.
+ * Image URLs come from external (untrusted) feeds: without this check a feed
+ * could make the server download internal resources (localhost, 169.254.169.254, intranet...).
+ * The validated IP is then "pinned" in the request (CURLOPT_RESOLVE) to prevent DNS rebinding.
  */
 final class UrlGuard
 {
-    /** @var array<string, string[]> cache DNS per l'esecuzione corrente */
+    /** @var array<string, string[]> DNS cache for the current run */
     private array $dnsCache = [];
 
     public function __construct(private readonly ExtensionSettings $settings) {}
@@ -27,32 +27,32 @@ final class UrlGuard
     public function check(string $url): array
     {
         if ($url === '' || strlen($url) > 2048) {
-            throw new \RuntimeException('URL vuoto o troppo lungo.', 1731600001);
+            throw new \RuntimeException('URL empty or too long.', 1731600001);
         }
         $parts = parse_url($url);
         if (!is_array($parts) || !isset($parts['scheme'], $parts['host'])) {
-            throw new \RuntimeException('URL non valido: ' . $this->safe($url), 1731600002);
+            throw new \RuntimeException('Invalid URL: ' . $this->safe($url), 1731600002);
         }
         $scheme = strtolower($parts['scheme']);
         if ($scheme !== 'http' && $scheme !== 'https') {
-            throw new \RuntimeException('Protocollo non consentito: ' . $this->safe($scheme), 1731600003);
+            throw new \RuntimeException('Protocol not allowed: ' . $this->safe($scheme), 1731600003);
         }
         if (isset($parts['user']) || isset($parts['pass'])) {
-            throw new \RuntimeException('Credenziali nell\'URL non consentite.', 1731600004);
+            throw new \RuntimeException('Credentials in the URL are not allowed.', 1731600004);
         }
 
         $host = strtolower(trim($parts['host'], '[]'));
         $port = (int)($parts['port'] ?? ($scheme === 'https' ? 443 : 80));
         if ($port < 1 || $port > 65535) {
-            throw new \RuntimeException('Porta non valida.', 1731600005);
+            throw new \RuntimeException('Invalid port.', 1731600005);
         }
 
         if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
             $ips = [$host];
         } else {
-            // Solo hostname ASCII (gli IDN devono arrivare in punycode)
+            // ASCII host names only (IDNs must arrive in punycode)
             if (!preg_match('/^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.?$/', $host)) {
-                throw new \RuntimeException('Hostname non valido: ' . $this->safe($host), 1731600006);
+                throw new \RuntimeException('Invalid host name: ' . $this->safe($host), 1731600006);
             }
             $ips = $this->resolve($host);
         }
@@ -63,7 +63,7 @@ final class UrlGuard
         if (!$this->settings->allowPrivateHosts()) {
             foreach ($ips as $ip) {
                 if (!self::isPublicIp($ip)) {
-                    throw new \RuntimeException('Host in rete privata/riservata non consentito: ' . $this->safe($host), 1731600008);
+                    throw new \RuntimeException('Host in a private/reserved network not allowed: ' . $this->safe($host), 1731600008);
                 }
             }
         }
@@ -73,12 +73,12 @@ final class UrlGuard
 
     public static function isPublicIp(string $ip): bool
     {
-        // FILTER_FLAG_GLOBAL_RANGE (PHP 8.2+) esclude privati, loopback, link-local, CGNAT, riservati, ecc.
+        // FILTER_FLAG_GLOBAL_RANGE (PHP 8.2+) excludes private, loopback, link-local, CGNAT, reserved ranges, etc.
         return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_GLOBAL_RANGE) !== false;
     }
 
     /**
-     * Formato per CURLOPT_RESOLVE ("host:porta:ip", IPv6 tra parentesi quadre).
+     * Format for CURLOPT_RESOLVE ("host:port:ip", IPv6 in square brackets).
      *
      * @param array{host: string, port: int, ip: string} $target
      */

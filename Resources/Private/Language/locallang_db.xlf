@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
-    <file source-language="en" datatype="plaintext" original="EXT:rss_news_import/Resources/Private/Language/locallang_db.xlf" product-name="rss_news_import">
+    <file source-language="en" datatype="plaintext" original="EXT:rssnewsimport/Resources/Private/Language/locallang_db.xlf" product-name="rssnewsimport">
         <body>
             <trans-unit id="tx_rssnewsimport_feed"><source>RSS feed</source></trans-unit>
             <trans-unit id="tab.general"><source>Feed</source></trans-unit>

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SpecialistaWeb\RssNewsImport\Domain\Dto;
 
 /**
- * Esito della lettura di un feed con SimplePie.
+ * Result of reading a feed with SimplePie.
  */
 final class FeedReadResult
 {

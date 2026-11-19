@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SpecialistaWeb\RssNewsImport\Domain\Dto;
 
 /**
- * Riepilogo dell'importazione di un singolo feed.
+ * Summary of the import of a single feed.
  */
 final class ImportResult
 {
@@ -17,9 +17,9 @@ final class ImportResult
     /** Items left out because they contain one of the excluded keywords */
     public int $excluded = 0;
     public int $images = 0;
-    /** Feed non modificato (HTTP 304 o contenuto identico): nessuna elaborazione */
+    /** Feed not modified (HTTP 304 or identical content): no processing */
     public bool $notModified = false;
-    /** Il feed non è stato letto (errore di rete/XML) */
+    /** The feed was not read (network/XML error) */
     public bool $failed = false;
     /** @var string[] */
     public array $errors = [];
@@ -44,9 +44,9 @@ final class ImportResult
     public function getStateLabel(): string
     {
         return match (true) {
-            $this->failed => 'errore',
+            $this->failed => 'error',
             $this->notModified => 'invariato',
-            $this->hasErrors() => 'ok con avvisi',
+            $this->hasErrors() => 'ok with warnings',
             default => 'ok',
         };
     }
@@ -58,10 +58,10 @@ final class ImportResult
             return $date . ': ERRORE – ' . implode(' | ', $this->errors);
         }
         if ($this->notModified) {
-            return $date . ': nessuna novità (feed invariato).';
+            return $date . ': nothing new (feed unchanged).';
         }
         $text = sprintf(
-            '%s: %d creati, %d aggiornati, %d saltati, %d esclusi per parola chiave, %d immagini.',
+            '%s: %d created, %d updated, %d skipped, %d excluded by keyword, %d images.',
             $date,
             $this->created,
             $this->updated,
